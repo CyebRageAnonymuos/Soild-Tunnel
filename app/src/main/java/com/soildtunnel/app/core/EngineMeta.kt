@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Live connection metadata for the desktop-parity info row (): the
+ * Live connection metadata for the desktop-parity info row: the
  * protocol actually in use and the endpoint the engine picked.
  *
  * The endpoint is ground truth from the engine itself: [SoildTunnelProcess]

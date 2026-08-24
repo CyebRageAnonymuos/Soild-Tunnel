@@ -89,7 +89,7 @@ import com.soildtunnel.app.ui.theme.CardTextPrimary
 /**
  * THE bottom block of the home screen (new in ).
  *
- * Until  the area under the power button was four separate floating
+ * Originally the area under the power button was four separate floating
  * surfaces - status text, traffic meter, IP badge and the protocol/endpoint/
  * latency row - each with its own colour, radius and padding. They read as
  * clutter on a phone screen and nothing tied them together.
@@ -97,11 +97,11 @@ import com.soildtunnel.app.ui.theme.CardTextPrimary
  * This is one cohesive glassmorphic card instead, with a single surface colour
  * system and a fixed vertical hierarchy:
  *
- *   1. connection status  (large, mint, with a quiet "tap to disconnect" line)
- *   2. session timer      ("Connected for" + HH:MM:SS in a mono/digital face)
- *   3. server IP pill     (label + country flag + address)
- *   4. speed strip        (live down/up rate and session totals)
- *   5. protocol strip     (Protocol | Endpoint | Latency, three equal columns)
+ * 1. connection status  (large, mint, with a quiet "tap to disconnect" line)
+ * 2. session timer      ("Connected for" + HH:MM:SS in a mono/digital face)
+ * 3. server IP pill     (label + country flag + address)
+ * 4. speed strip        (live down/up rate and session totals)
+ * 5. protocol strip     (Protocol | Endpoint | Latency, three equal columns)
  *
  * Nothing floats outside the block: every sub-section is a child container of
  * the same card, drawn from the same palette.
@@ -120,11 +120,11 @@ import com.soildtunnel.app.ui.theme.CardTextPrimary
  * animations eating the frame budget (see AmbientBackground):
  *  - it is ONE closed path, measured once per size change and cached;
  *  - the animation state is read inside the draw lambda, so a frame costs a
- *    redraw of the border only - never a recomposition of the card;
+ * redraw of the border only - never a recomposition of the card;
  *  - the infinite transition is composed ONLY while connected, so a disconnected
- *    app subscribes to no frame callbacks at all;
+ * app subscribes to no frame callbacks at all;
  *  - each band is three strokes (halo, mid, core) in additive blend, which fakes
- *    a soft bloom without a blur pass or a second layer.
+ * a soft bloom without a blur pass or a second layer.
  */
 @Composable
 fun ConnectionCard(
@@ -475,9 +475,9 @@ private data class TrafficStats(
 /**
  * Sums BOTH possible traffic paths so the meter works in every mode:
  *  - hev-socks5-tunnel's direction-corrected counters (system-VPN mode; null in
- *    proxy mode, where there is no TUN),
+ * proxy mode, where there is no TUN),
  *  - ShareBridge: bytes relayed through the local SOCKS5/HTTP listeners (the
- *    only source in proxy mode, plus LAN clients in system-VPN mode).
+ * only source in proxy mode, plus LAN clients in system-VPN mode).
  *
  * Rates come from deltas against a monotonic clock, so a wall-clock jump cannot
  * invent a spike. A negative delta (core restart during auto-reconnect, or a

@@ -25,7 +25,7 @@ data class PingResult(
  * BATTERY DESIGN: there is deliberately NO periodic polling loop here. A
  * measurement only runs when the user taps the ping badge, or exactly once
  * after a new connection comes up. Each run is a single TCP handshake to
- * Cloudflare's anycast resolver (.1:53) with a hard 5 s timeout, so one
+ * Cloudflare's anycast resolver (1.1.1.1:53) with a hard 5 s timeout, so one
  * measurement costs one packet round-trip and never keeps the CPU awake.
  */
 object PingMonitor {
@@ -36,7 +36,7 @@ object PingMonitor {
     private val mutex = Mutex()
 
     /**
-     * Measures TCP handshake latency to .1:53.
+     * Measures TCP handshake latency to 1.1.1.1:53.
      *
      * @param viaTunnel when true the probe socket is opened THROUGH the local
      * SOCKS5 listener of the running engine, so the number reflects the
@@ -68,7 +68,7 @@ object PingMonitor {
                 Socket()
             }
             socket.use { s ->
-                s.connect(InetSocketAddress(".1", 53), 5000)
+                s.connect(InetSocketAddress("1.1.1.1", 53), 5000)
             }
             SystemClock.elapsedRealtime() - start
         } catch (e: Exception) {

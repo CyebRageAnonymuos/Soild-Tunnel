@@ -195,7 +195,7 @@ private fun CheckRow(check: ComponentCheck) {
 
 @Composable
 private fun LogConsole() {
-    //  UI-SPEED FIX: the log list was collected by the panel itself, so
+    // UI-SPEED FIX: the log list was collected by the panel itself, so
     // every engine line (hundreds during a scan) recomposed the whole
     // diagnostics card — and the whole drawer around it — even while the log
     // console was collapsed and invisible. The console is only composed when

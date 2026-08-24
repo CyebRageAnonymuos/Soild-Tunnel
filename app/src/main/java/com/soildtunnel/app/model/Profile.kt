@@ -39,11 +39,11 @@ enum class SplitMode { OFF, INCLUDE, EXCLUDE }
  *  - SERVICE_TOKEN  : headless enrolment with an Access service token id+secret.
  *  - EMAIL          : one-time code sent to a work e-mail address.
  *  - TOKEN          : an enrolment JWT the user already obtained in a browser
- *                     at https://<team>.cloudflareaccess.com/warp.
+ * at https://<team>.cloudflareaccess.com/warp.
  */
 enum class TeamAuth { OFF, SERVICE_TOKEN, EMAIL, TOKEN }
 
-/** Engine core log verbosity (). Mapped to the engine's SOILDTUNNEL_LOG_LEVEL. */
+/** Engine core log verbosity. Mapped to the engine's SOILDTUNNEL_LOG_LEVEL. */
 enum class CoreLogLevel(val raw: String) { OFF("off"), ERROR("error"), WARN("warn"), INFO("info"), DEBUG("debug") }
 
 /**
@@ -102,7 +102,7 @@ data class ConnectionProfile(
 
     /**
      * Resolvers used INSIDE the tunnel (engine `--dns`). Blank = engine default
-     * (.1, 1.0.0.1). Comma separated; a bare IP implies port 53.
+     * (1.1.1.1, 1.0.0.1). Comma separated; a bare IP implies port 53.
      */
     val dnsServers: String = "",
 
@@ -137,7 +137,7 @@ data class ConnectionProfile(
     /** Destinations sent straight out, bypassing the tunnel (engine `--route-direct`). */
     val routeDirect: String = "",
 
-    // ---- Added in  (feature parity) ----
+    // ---- Added later (feature parity) ----
 
     /** Kill switch: if the tunnel drops, keep a blocking blackhole TUN up so nothing leaks direct. */
     val killSwitch: Boolean = false,
@@ -171,7 +171,7 @@ data class ConnectionProfile(
 
     /**
      * Chain the engine through a proxy that is ALREADY running on this phone
-     * (engine `--upstream` / `SOILDTUNNEL_UPSTREAM`, ). Accepts
+     * (engine `--upstream` / `SOILDTUNNEL_UPSTREAM`). Accepts
      * `socks5://[user:pass@]host:port`, `http://[user:pass@]host:port` or a bare
      * `host:port` (read as SOCKS5). Blank = dial out directly.
      *
@@ -285,7 +285,7 @@ data class ConnectionProfile(
             args += it.joinToString(",")
         }
 
-        // ----  engine tuning ----
+        // ---- engine tuning ----
         if (fragment) {
             sanitizedRange(fragmentSize)?.let { args += "--fragment-size"; args += it }
             sanitizedRange(fragmentDelay)?.let { args += "--fragment-delay"; args += it }
@@ -316,7 +316,7 @@ data class ConnectionProfile(
         if (endpointMode == EndpointMode.MANUAL_RANGE && userRange.isNotBlank()) {
             // prober.rs reads SOILDTUNNEL_MASQUE_CIDRS then SOILDTUNNEL_SCAN_CIDRS;
             // wg_prober.rs reads SOILDTUNNEL_WG_CIDRS then SOILDTUNNEL_SCAN_CIDRS.
-            // Both scanners honour this from  on: until then only the
+            // Both scanners honour this flag: before it existed, only the
             // WireGuard side carried the app patch, so a pinned range was
             // silently ignored on MASQUE and gool.
             put("SOILDTUNNEL_SCAN_CIDRS", userRange)
@@ -349,7 +349,7 @@ data class ConnectionProfile(
             }
         }
 
-        // ----  engine tuning ----
+        // ---- engine tuning ----
         if (noDataCheck) {
             put("SOILDTUNNEL_MASQUE_NO_DATA_CHECK", "1")
             put("SOILDTUNNEL_WG_NO_DATA_CHECK", "1")
@@ -383,7 +383,7 @@ data class ConnectionProfile(
     }
 
     /**
-     * Validated resolver list for `--dns`. Accepts `.1` or `.1:53`
+     * Validated resolver list for `--dns`. Accepts `1.1.1.1` or `1.1.1.1:53`
      * and drops anything else, so a stray space or shell metacharacter in the
      * settings field can never become a separate engine argument.
      */
@@ -459,7 +459,7 @@ data class ConnectionProfile(
         const val MAX_DNS_SERVERS = 8
         const val MAX_ROUTE_RULES = 256
 
-        /** `.1` or `.1:53` (IPv4, or bracketed IPv6 with a port). */
+        /** `1.1.1.1` or `1.1.1.1:53` (IPv4, or bracketed IPv6 with a port). */
         private val DNS_ENTRY =
             Regex("^(?:\\d{1,3}(?:\\.\\d{1,3}){3}|\\[[0-9A-Fa-f:]+])(?::\\d{1,5})?$")
 

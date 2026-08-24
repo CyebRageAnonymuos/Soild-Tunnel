@@ -32,5 +32,5 @@ object TunnelConfig {
     const val MTU = 1500
 
     /** DNS resolvers advertised on the TUN interface. */
-    val DNS_SERVERS = listOf(".1", "8.8.8.8")
+    val DNS_SERVERS = listOf("1.1.1.1", "8.8.8.8")
 }

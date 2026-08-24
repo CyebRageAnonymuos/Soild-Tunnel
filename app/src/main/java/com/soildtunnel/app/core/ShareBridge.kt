@@ -20,12 +20,12 @@ import kotlin.concurrent.thread
  *
  * Two listeners are exposed while sharing is on:
  *  - SOCKS5  0.0.0.0:[SOCKS_SHARE_PORT] — a transparent TCP relay into the
- *    engine's local SOCKS5 (127.0.0.1:1819, loopback-only), so the full SOCKS5
- *    protocol (including remote DNS) is served by the engine itself.
+ * engine's local SOCKS5 (127.0.0.1:1819, loopback-only), so the full SOCKS5
+ * protocol (including remote DNS) is served by the engine itself.
  *  - HTTP    0.0.0.0:[HTTP_SHARE_PORT] — a minimal HTTP/1.1 proxy (CONNECT for
- *    HTTPS + absolute-form for plain HTTP) that dials upstream THROUGH that
- *    SOCKS5 proxy. This is what the "system proxy" settings on Windows/macOS
- *    (and most phones) expect, so laptops work out of the box.
+ * HTTPS + absolute-form for plain HTTP) that dials upstream THROUGH that
+ * SOCKS5 proxy. This is what the "system proxy" settings on Windows/macOS
+ * (and most phones) expect, so laptops work out of the box.
  *
  * Loop safety: this code runs inside the app process, which is excluded from
  * the TUN via addDisallowedApplication(), so proxied traffic always leaves via
@@ -49,12 +49,12 @@ object ShareBridge {
      * app at once would hit hard collisions:
      *
      *  - If another client bound first, SoildTunnel's sharing/proxy mode failed
-     *    with EADDRINUSE and the user saw "could not open the proxy ports".
+     * with EADDRINUSE and the user saw "could not open the proxy ports".
      *  - If SoildTunnel bound first, the other client failed to start — reported
-     *    by users as one app "breaking" the other.
+     * by users as one app "breaking" the other.
      *  - Worst case, an app configured for 127.0.0.1:10808 silently sent its
-     *    traffic into whichever tunnel happened to own the port that minute —
-     *    a routing conflict with real privacy consequences.
+     * traffic into whichever tunnel happened to own the port that minute —
+     * a routing conflict with real privacy consequences.
      *
      * SoildTunnel sits one slot up at **10810/10811**, which sit in the same
      * easy-to-remember block but are claimed by no mainstream client, and adds
@@ -172,7 +172,7 @@ object ShareBridge {
         // into other apps must never silently change between sessions. A short
         // retry loop absorbs a transient EADDRINUSE from a just-closed listener
         // (TIME_WAIT / async teardown); a genuinely occupied port fails loudly.
-        // : log which neighbouring tunnels are live BEFORE binding, so a
+        // Log which neighbouring tunnels are live BEFORE binding, so a
         // port clash is diagnosable from the in-app log alone.
         reportNeighbours()
 
@@ -275,7 +275,7 @@ object ShareBridge {
 
     /**
      * Detects other local tunnels listening on the classic proxy ports and
-     * notes them in the log. Purely informational:  deliberately binds
+     * notes them in the log. Purely informational: it deliberately binds
      * ports nobody else claims, so co-existing with other proxy apps is expected
      * to just work — this line simply proves it in the diagnostics.
      */

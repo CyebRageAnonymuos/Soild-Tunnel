@@ -6,32 +6,32 @@ import android.util.Log
  * JNI binding for the hev-socks5-tunnel core — via SoildTunnel's OWN bridge
  * library (libsoildtunnel-jni.so, built from scripts/soildtunneltun-jni.c).
  *
- * WHY OUR OWN BRIDGE (root cause of the  "VPN mode never connects" bug):
+ * WHY OUR OWN BRIDGE (root cause of the old "VPN mode never connects" bug):
  * the app used to System.loadLibrary("hev-socks5-tunnel") and rely on hev's
  * bundled hev-jni.c to register the TProxy* natives onto this class. That
  * coupled these Kotlin declarations to WHATEVER JNI signatures the upstream
  * default branch happens to use. Upstream then changed TProxyStartService
  * from '(Ljava/lang/String;I)V' to '(Ljava/lang/String;I)Z', so
  * RegisterNatives inside its JNI_OnLoad failed with:
- *   NoSuchMethodError: no static or non-static method
- *   "Lcom/soildtunnel/app/core/TProxyService;.TProxyStartService(Ljava/lang/String;I)Z"
+ * NoSuchMethodError: no static or non-static method
+ * "Lcom/soildtunnel/app/core/TProxyService;.TProxyStartService(Ljava/lang/String;I)Z"
  * System.loadLibrary() threw, `available` stayed false, and VPN mode died
  * with "hev native library unavailable" while proxy mode (which never loads
  * hev) kept working.
  *
  * libsoildtunnel-jni.so removes that failure mode categorically:
  *  - It binds ONLY hev's stable public C API (hev_socks5_tunnel_main/quit/
- *    stats), which is resolved at LINK time in CI (-Wl,--no-undefined) — any
- *    upstream break fails the BUILD, never the user's device.
+ * stats), which is resolved at LINK time in CI (-Wl,--no-undefined) — any
+ * upstream break fails the BUILD, never the user's device.
  *  - It exports conventional Java_* symbols that WE control, matching the
- *    external declarations below exactly (also verified at build time).
+ * external declarations below exactly (also verified at build time).
  *  - It defines its own JNI_OnLoad. ART finds JNI_OnLoad via dlsym() on the
- *    loaded library's handle, and dlsym() ALSO searches DT_NEEDED
- *    dependencies — so without our own JNI_OnLoad, hev's one ran anyway and
- *    its RegisterNatives failed again (seen in the field as
- *    'TProxyStopService()Z'). Ours shadows it, and the build additionally
- *    strips hev-jni.c out of libhev-socks5-tunnel.so entirely, so there is
- *    no foreign JNI_OnLoad left to find.
+ * loaded library's handle, and dlsym() ALSO searches DT_NEEDED
+ * dependencies — so without our own JNI_OnLoad, hev's one ran anyway and
+ * its RegisterNatives failed again (seen in the field as
+ * 'TProxyStopService()Z'). Ours shadows it, and the build additionally
+ * strips hev-jni.c out of libhev-socks5-tunnel.so entirely, so there is
+ * no foreign JNI_OnLoad left to find.
  *
  * THREADING (unchanged, do not "simplify"): the tunnel event loop runs on a
  * NATIVE pthread created inside the bridge. hev-task-system swaps the

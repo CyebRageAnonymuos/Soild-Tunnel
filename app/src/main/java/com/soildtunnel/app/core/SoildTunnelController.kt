@@ -115,7 +115,7 @@ object ProfileCodec {
         add("proxy=${p.proxyMode}")
         add("split=${p.splitMode.name}")
         add("splitApps=${p.splitApps.joinToString(",")}")
-        // Added in  (feature parity)
+        // Added later (feature parity)
         add("kill=${p.killSwitch}")
         add("strictKill=${p.strictKillSwitch}")
         add("v6leak=${p.ipv6LeakProtection}")

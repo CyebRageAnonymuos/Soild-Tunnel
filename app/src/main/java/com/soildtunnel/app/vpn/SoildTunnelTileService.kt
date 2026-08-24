@@ -28,14 +28,14 @@ import com.soildtunnel.app.model.isConnected
  *
  * Behaviour, mapped to the QS tile contract:
  *  - onStartListening/onStopListening: the tile is visible, so we mirror the
- *    live [SoildTunnelController.state] into the tile (ACTIVE while connected or
- *    busy, INACTIVE otherwise, with the state name as subtitle).
+ * live [SoildTunnelController.state] into the tile (ACTIVE while connected or
+ * busy, INACTIVE otherwise, with the state name as subtitle).
  *  - onClick:
- *      * connected/busy  -> disconnect (also acts as "cancel" mid-connect),
- *      * idle + consent already granted -> connect with the saved profile,
- *      * idle + consent missing -> the consent dialog can only be shown from
- *        an Activity, so we open MainActivity which immediately starts the
- *        normal connect flow (and shows the system VPN dialog).
+ * * connected/busy  -> disconnect (also acts as "cancel" mid-connect),
+ * * idle + consent already granted -> connect with the saved profile,
+ * * idle + consent missing -> the consent dialog can only be shown from
+ * an Activity, so we open MainActivity which immediately starts the
+ * normal connect flow (and shows the system VPN dialog).
  */
 class SoildTunnelTileService : TileService() {
 

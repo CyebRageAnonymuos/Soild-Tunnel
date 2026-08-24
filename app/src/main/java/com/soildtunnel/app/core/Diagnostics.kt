@@ -11,33 +11,33 @@ import kotlinx.coroutines.withContext
  * records every step in [DiagnosticsLog]. The order is deliberate so a reader
  * can pinpoint WHERE the pipeline breaks:
  *
- *   port      -> is the engine even listening?
- *   handshake -> does it speak SOCKS5?
- *   tcp       -> can it open an outbound TCP connection (to an IP, no DNS)?
- *   dns_http  -> can it resolve a domain AND fetch over HTTP end-to-end?
+ * port      -> is the engine even listening?
+ * handshake -> does it speak SOCKS5?
+ * tcp       -> can it open an outbound TCP connection (to an IP, no DNS)?
+ * dns_http  -> can it resolve a domain AND fetch over HTTP end-to-end?
  *
  * Example: port+handshake+tcp PASS but dns_http FAIL => the tunnel works but
  * DNS (SOCKS5 UDP ASSOCIATE / remote resolution) is broken — the usual reason a
  * WARP-style tunnel "connects but no site loads".
  *
- * SPEED ( root-cause rework): this self-test is now the GATE for the
+ * SPEED (root-cause rework): this self-test is now the GATE for the
  * Connected state, so every second it wastes is a second the user stares at
  * "connecting". Three structural fixes cut the readiness time dramatically:
  *
- *   1. The TCP and DNS+HTTP checks run CONCURRENTLY. They are independent
- *      probes of the same proxy; running them back-to-back doubled the
- *      cold-start wait for no benefit.
- *   2. Retries fire every 750 ms instead of every 3 s. The engine's inner
- *      tunnel becomes ready at an unpredictable instant inside the warm-up
- *      window; a 3 s poll added up to ~3 s of pure detection latency (per
- *      check!) after the tunnel was already usable.
- *   3. The DNS+HTTP probe races ALL geolocation providers in parallel
- *      ([NetProbe.fetchIpInfoViaSocksRaced]) instead of trying them one by
- *      one. On Iranian networks individual providers are often filtered or
- *      slow in ways that differ per operator/region (DPI variance), so the
- *      serial fallback chain could burn 20-30 s of timeouts before reaching
- *      the provider that actually answers. The race always finishes as fast
- *      as the FASTEST provider for that user's network.
+ * 1. The TCP and DNS+HTTP checks run CONCURRENTLY. They are independent
+ * probes of the same proxy; running them back-to-back doubled the
+ * cold-start wait for no benefit.
+ * 2. Retries fire every 750 ms instead of every 3 s. The engine's inner
+ * tunnel becomes ready at an unpredictable instant inside the warm-up
+ * window; a 3 s poll added up to ~3 s of pure detection latency (per
+ * check!) after the tunnel was already usable.
+ * 3. The DNS+HTTP probe races ALL geolocation providers in parallel
+ * ([NetProbe.fetchIpInfoViaSocksRaced]) instead of trying them one by
+ * one. On Iranian networks individual providers are often filtered or
+ * slow in ways that differ per operator/region (DPI variance), so the
+ * serial fallback chain could burn 20-30 s of timeouts before reaching
+ * the provider that actually answers. The race always finishes as fast
+ * as the FASTEST provider for that user's network.
  */
 object Diagnostics {
     const val C_PORT = "socks_port"
@@ -65,7 +65,7 @@ object Diagnostics {
             listOf(
                 ComponentCheck(C_PORT, "SOCKS5 port $host:$port"),
                 ComponentCheck(C_HANDSHAKE, "SOCKS5 handshake"),
-                ComponentCheck(C_TCP, "TCP via proxy (.1:80)"),
+                ComponentCheck(C_TCP, "TCP via proxy (1.1.1.1:80)"),
                 ComponentCheck(C_DNS, "DNS + HTTP via tunnel"),
             )
         )
@@ -109,10 +109,10 @@ object Diagnostics {
         val (tcp, info) = coroutineScope {
             val tcpJob = async {
                 DiagnosticsLog.updateCheck(C_TCP, CheckState.RUNNING)
-                var ok = NetProbe.checkTcpViaProxy(host, port, ".1", 80, TCP_PROBE_TIMEOUT_MS)
+                var ok = NetProbe.checkTcpViaProxy(host, port, "1.1.1.1", 80, TCP_PROBE_TIMEOUT_MS)
                 while (!ok && System.currentTimeMillis() < deadline) {
                     delay(OUTBOUND_RETRY_DELAY_MS)
-                    ok = NetProbe.checkTcpViaProxy(host, port, ".1", 80, TCP_PROBE_TIMEOUT_MS)
+                    ok = NetProbe.checkTcpViaProxy(host, port, "1.1.1.1", 80, TCP_PROBE_TIMEOUT_MS)
                 }
                 DiagnosticsLog.updateCheck(C_TCP, if (ok) CheckState.PASS else CheckState.FAIL)
                 DiagnosticsLog.log(TAG, if (ok) LogLevel.INFO else LogLevel.ERROR, "tcp via proxy = $ok")

@@ -25,11 +25,11 @@ import com.soildtunnel.app.ui.theme.GlassSheenTop
  * Every "pane" in the app is built from the same three layers, so the UI reads
  * as one material instead of a pile of surfaces:
  *
- *   1. FILL   — a translucent white vertical gradient (frosted pane body);
- *   2. SHEEN  — a stop-based specular streak across the top edge, which is what
- *               sells the "glass" illusion (bright rim of light at y=0, gone by
- *               ~30% height; stop-based, so it scales to any surface size);
- *   3. RIM    — a hairline white border catching the light around the edge.
+ * 1. FILL   — a translucent white vertical gradient (frosted pane body);
+ * 2. SHEEN  — a stop-based specular streak across the top edge, which is what
+ * sells the "glass" illusion (bright rim of light at y=0, gone by
+ * ~30% height; stop-based, so it scales to any surface size);
+ * 3. RIM    — a hairline white border catching the light around the edge.
  *
  * Performance contract: pure static drawing. No blur passes, no RenderEffect,
  * no animation inside the material itself — the previous animated aurora

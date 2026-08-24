@@ -54,7 +54,7 @@ fun AboutPanel(modifier: Modifier = Modifier) {
     val versionName = remember {
         runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName
-        }.getOrNull() ?: ""
+        }.getOrNull() ?: "1.0.0"
     }
 
     Card(

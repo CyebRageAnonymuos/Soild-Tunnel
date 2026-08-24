@@ -159,7 +159,7 @@ class MainActivity : ComponentActivity() {
                             // a last-resort fallback (guarded by
                             // offerTunnelIpInfo, so it can never overwrite).
                             SoildTunnelController.setIpLoading(true)
-                            //  CPU FIX: this used to busy-poll a StateFlow
+                            // CPU FIX: this used to busy-poll a StateFlow
                             // every 250 ms for up to 100 s — as many as 400
                             // pointless wake-ups on the UI dispatcher right
                             // after connecting, exactly when the device is

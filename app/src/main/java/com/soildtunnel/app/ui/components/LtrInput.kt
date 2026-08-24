@@ -29,23 +29,23 @@ import androidx.compose.ui.unit.LayoutDirection
  * BOTH the English and the Persian locale:
  *
  * 1. ASYNC STATE ECHO (all locales — the actual reason English scrambled
- *    too): the field used to be driven directly by profile state that
- *    round-trips through DataStore (keystroke -> async save -> flow emits
- *    back). While typing fast, a keystroke was applied on top of a STALE
- *    value that echoed back from disk a moment later, so characters were
- *    dropped/reordered and the cursor jumped ("127.0.0.1" -> "27.0.0.11").
- *    Defense here (in addition to the synchronous state fix in
- *    MainActivity): the field owns a local [TextFieldValue] while focused —
- *    the single source of truth for what the user is typing. External
- *    changes (initial load, "reset settings") are only accepted while the
- *    field is NOT focused, so no async echo can ever clobber a keystroke.
+ * too): the field used to be driven directly by profile state that
+ * round-trips through DataStore (keystroke -> async save -> flow emits
+ * back). While typing fast, a keystroke was applied on top of a STALE
+ * value that echoed back from disk a moment later, so characters were
+ * dropped/reordered and the cursor jumped ("127.0.0.1" -> "27.0.0.11").
+ * Defense here (in addition to the synchronous state fix in
+ * MainActivity): the field owns a local [TextFieldValue] while focused —
+ * the single source of truth for what the user is typing. External
+ * changes (initial load, "reset settings") are only accepted while the
+ * field is NOT focused, so no async echo can ever clobber a keystroke.
  *
  * 2. BiDi RENDERING (Persian locale): the Unicode BiDi algorithm treats
- *    digits, dots and colons as direction-NEUTRAL, so inside an RTL layout
- *    a value like `162.159.192.1:443` gets visually reordered around the
- *    RTL base direction while typing. ip:port / CIDR / URLs are inherently
- *    LTR, so this field pins BOTH the layout direction and the text
- *    direction to LTR.
+ * digits, dots and colons as direction-NEUTRAL, so inside an RTL layout
+ * a value like `162.159.192.1:443` gets visually reordered around the
+ * RTL base direction while typing. ip:port / CIDR / URLs are inherently
+ * LTR, so this field pins BOTH the layout direction and the text
+ * direction to LTR.
  *
  * Additionally, every character is normalized on input: Eastern-Arabic
  * digit variants become ASCII 0-9, and Arabic separators become '.' / ','.
@@ -67,7 +67,7 @@ fun LtrOutlinedTextField(
     placeholder: @Composable (() -> Unit)? = null,
     supportingText: @Composable (() -> Unit)? = null,
     keyboardType: KeyboardType = KeyboardType.Ascii,
-    // Added in : lets Zero Trust secrets be masked while still getting the
+    // Lets Zero Trust secrets be masked while still getting the
     // LTR/BiDi handling every technical field in this app needs.
     visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {

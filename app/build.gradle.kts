@@ -31,7 +31,7 @@ val abiCodes = mapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "universal" to 3)
 //      signature and updates always install in place.
 //
 // NOTE: `Properties` / `Base64` are imported at the top of this file. Never
-// write `java.util.Properties` inline here — inside build.gradle.kts the
+// write `java.util.Properties()` inline here — inside build.gradle.kts the
 // `java {}` accessor shadows the `java` package and script compilation fails
 // with "Unresolved reference 'util'".
 // ---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ android {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
 
-        // : the in-app updater (APK download + system installer handoff)
+        // In-app updater: APK download + system installer handoff
         // was REMOVED. The app no longer downloads executable code at runtime
         // from anywhere. What remains is a read-only pointer to the official,
         // signed GitHub Releases page that the About card can open in the
@@ -84,7 +84,7 @@ android {
         val githubRepo = System.getenv("GITHUB_REPOSITORY")
             ?: (project.findProperty("githubRepo") as? String ?: "")
         val releasesUrl =
-            if (githubRepo.isNotBlank) "https://github.com/$githubRepo/releases/latest" else ""
+            if (githubRepo.isNotBlank()) "https://github.com/$githubRepo/releases/latest" else ""
         buildConfigField("String", "RELEASES_URL", "\"$releasesUrl\"")
 
         // SoildTunnel engine (core) version compiled into this build.
@@ -171,7 +171,7 @@ android {
 
     packaging {
         // IMPORTANT: extract native libs on install so the bundled `soildtunnel` and
-        // `hev` executables live on disk in nativeLibraryDir and can be exec'd.
+        // `hev` executables live on disk in nativeLibraryDir and can be exec()'d.
         jniLibs {
             useLegacyPackaging = true
         }
@@ -236,7 +236,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
-    implementation("androidx.datastore:datastore-preferences:")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")

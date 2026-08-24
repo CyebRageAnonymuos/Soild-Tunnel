@@ -13,12 +13,12 @@ import androidx.compose.ui.graphics.Color
  * The app backdrop: a deep navy sky with two soft colour pools.
  *
  * 1.3 LIQUID GLASS: glass only reads as glass when there is something behind
- * it, so the flat fill from the  perf fix grew two large radial gradients
+ * it, so the flat fill from the early perf fix grew two large radial gradients
  * back - a cool blue pool top-left and a violet one bottom-right; while the
  * tunnel is up the blue shifts to brand mint so the whole screen warms with
  * the connection.
  *
- * The  lesson stands: NOTHING animates here. The gradients are drawn once
+ * The same lesson stands: NOTHING animates here. The gradients are drawn once
  * per size/accent change inside drawBehind (no Canvas node, no recomposition,
  * no frame callbacks). A static draw like this costs effectively nothing after
  * the first frame, unlike the old infinite-transition aurora.

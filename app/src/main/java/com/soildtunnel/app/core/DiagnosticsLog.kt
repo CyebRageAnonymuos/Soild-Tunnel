@@ -66,9 +66,9 @@ object DiagnosticsLog {
     private const val MAX_LINES = 800
 
     /**
-     *  PERFORMANCE (memory + CPU).
+     * PERFORMANCE (memory + CPU).
      *
-     * The  implementation did `_lines.value = _lines.value + line` on
+     * The old implementation did `_lines.value = _lines.value + line` on
      * EVERY log line. With an 800-line cap and a chatty engine that is an
      * O(n) array copy per line plus a `takeLast(800)` copy on top — i.e. two
      * fresh ~800-element lists allocated per log write, several times a

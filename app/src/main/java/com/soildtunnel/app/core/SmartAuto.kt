@@ -29,12 +29,12 @@ import javax.net.ssl.SSLSocketFactory
  *
  *  - OPEN          : UDP answers and TLS-with-SNI completes — a mostly clean path.
  *  - SNI_FILTERING : UDP is fine but a TLS handshake carrying an SNI stalls or
- *                    resets — classic SNI-based DPI. Obfuscation (noize) matters.
+ * resets — classic SNI-based DPI. Obfuscation (noize) matters.
  *  - UDP_THROTTLED : TLS works but UDP gets no answers — the operator drops or
- *                    throttles UDP, which starves WireGuard/QUIC. TCP-shaped
- *                    transports (MASQUE over HTTP/2) are the way in.
+ * throttles UDP, which starves WireGuard/QUIC. TCP-shaped
+ * transports (MASQUE over HTTP/2) are the way in.
  *  - HOSTILE       : both are broken — bring everything: TCP transport, heavy
- *                    obfuscation, fragmentation and ECH.
+ * obfuscation, fragmentation and ECH.
  */
 enum class DpiClass { OPEN, SNI_FILTERING, UDP_THROTTLED, HOSTILE }
 
@@ -65,22 +65,22 @@ data class AutoCandidate(
  *
  * Smart Auto instead works like an engineer would:
  *
- *  1. FINGERPRINT ([fingerprint]) — before the engine even launches, probe the
- *     real network DIRECTLY (the app is excluded from its own TUN, so these
- *     probes always see the raw operator path):
- *       - UDP health: real DNS queries over UDP/53 to .1 and 8.8.8.8.
- *       - SNI DPI: a full TLS handshake to .1:443 carrying the SNI
- *         "www.cloudflare.com" (with hostname verification, no data sent).
+ * 1. FINGERPRINT ([fingerprint]) — before the engine even launches, probe the
+ * real network DIRECTLY (the app is excluded from its own TUN, so these
+ * probes always see the raw operator path):
+ *       - UDP health: real DNS queries over UDP/53 to 1.1.1.1 and 8.8.8.8.
+ *       - SNI DPI: a full TLS handshake to 1.1.1.1:443 carrying the SNI
+ * "www.cloudflare.com" (with hostname verification, no data sent).
  *       - WARP edge reachability: TCP connect latency to one representative
- *         host in each built-in Cloudflare WARP range.
+ * host in each built-in Cloudflare WARP range.
  *       - Operator: name + MCC (432 = Iran) + transport (cellular/Wi-Fi),
- *         read WITHOUT any extra permissions.
- *  2. CLASSIFY the DPI behaviour into a [DpiClass].
- *  3. PLAN ([buildPlan]) — build an ordered ladder of concrete strategies
- *     (protocol + noize + fragment/ECH + the ranges that actually answered),
- *     most-likely-to-succeed first, plus a full-range last resort.
- *  4. The VpnService then walks the ladder: each candidate gets a real connect
- *     attempt gated by the 4-step self-test; the first one that passes wins.
+ * read WITHOUT any extra permissions.
+ * 2. CLASSIFY the DPI behaviour into a [DpiClass].
+ * 3. PLAN ([buildPlan]) — build an ordered ladder of concrete strategies
+ * (protocol + noize + fragment/ECH + the ranges that actually answered),
+ * most-likely-to-succeed first, plus a full-range last resort.
+ * 4. The VpnService then walks the ladder: each candidate gets a real connect
+ * attempt gated by the 4-step self-test; the first one that passes wins.
  *
  * Every probe result and every decision is written to the in-app log, so the
  * user can see exactly WHY Smart Auto picked what it picked.
@@ -111,7 +111,7 @@ object SmartAuto {
         val started = System.currentTimeMillis()
         val fp = coroutineScope {
             // All probes run in PARALLEL — the whole stage costs one timeout at worst.
-            val udpCf = async { udpDnsProbe(".1") }
+            val udpCf = async { udpDnsProbe("1.1.1.1") }
             val udpGoog = async { udpDnsProbe("8.8.8.8") }
             val tls = async { tlsSniProbe() }
             val edgeJobs = EDGES.map { (cidr, probeIp) ->
@@ -271,7 +271,7 @@ object SmartAuto {
     }.getOrDefault(-1L)
 
     /**
-     * Completes a full TLS handshake to .1:443 with the SNI
+     * Completes a full TLS handshake to 1.1.1.1:443 with the SNI
      * "www.cloudflare.com" (no payload is sent). SNI-based DPI middleboxes
      * kill exactly this step, so a failure here — while plain TCP connects
      * fine — is a strong SNI-filtering signal. Hostname verification is
@@ -279,7 +279,7 @@ object SmartAuto {
      */
     private fun tlsSniProbe(timeoutMs: Int = TLS_PROBE_TIMEOUT_MS): Boolean = runCatching {
         Socket().use { raw ->
-            raw.connect(InetSocketAddress(".1", 443), timeoutMs)
+            raw.connect(InetSocketAddress("1.1.1.1", 443), timeoutMs)
             raw.soTimeout = timeoutMs
             val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
             val ssl = factory.createSocket(raw, "www.cloudflare.com", 443, true) as SSLSocket

@@ -40,12 +40,12 @@ import java.io.File
 
 /**
  * The heart of the app. On connect it:
- *   1. launches the bundled `soildtunnel` engine (opens SOCKS5 on 127.0.0.1:1819),
- *   2. waits until that port is actually reachable (ground-truth check),
- *   3. builds the VPN TUN interface,
- *   4. starts the embedded hev-socks5-tunnel core (libhev-socks5-tunnel.so) to forward all
- *      traffic through the proxy — a complete standalone solution,
- *   5. supervises both processes and auto-reconnects on failure.
+ * 1. launches the bundled `soildtunnel` engine (opens SOCKS5 on 127.0.0.1:1819),
+ * 2. waits until that port is actually reachable (ground-truth check),
+ * 3. builds the VPN TUN interface,
+ * 4. starts the embedded hev-socks5-tunnel core (libhev-socks5-tunnel.so) to forward all
+ * traffic through the proxy — a complete standalone solution,
+ * 5. supervises both processes and auto-reconnects on failure.
  */
 class SoildTunnelVpnService : VpnService() {
 
@@ -101,7 +101,7 @@ class SoildTunnelVpnService : VpnService() {
 
     private fun startTunnel(profile: ConnectionProfile) {
         lastProfile = profile
-        //  PROTOCOL-SWITCH FIX: this used to bail out silently whenever a
+        // PROTOCOL-SWITCH FIX: this used to bail out silently whenever a
         // previous run coroutine was still winding down ("if active, return"),
         // so a connect tapped right after a disconnect — or right after
         // switching protocol — was simply DROPPED. The user then waited,
@@ -192,17 +192,17 @@ class SoildTunnelVpnService : VpnService() {
      * Two-pass plan for a protocol the user picked by hand (MASQUE, WireGuard
      * or Gool).
      *
-     *  "MASQUE hangs forever" FIX: a hand-picked protocol used to get ONE
+     * "MASQUE hangs forever" FIX: a hand-picked protocol used to get ONE
      * attempt with the full scan budget of the selected scan mode — up to 150 s
      * on Balanced and 300 s on Thorough — with no second chance. On a network
      * where QUIC/UDP is throttled that means the user stares at "Connecting"
      * for minutes and then just fails, while Smart mode (which walks a ladder
      * of shorter, hardened attempts) connects in seconds. So the chosen
      * protocol now gets:
-     *   1. a first pass exactly as configured, on a capped budget, and
-     *   2. if that fails, the SAME protocol again with anti-DPI hardening
-     *      (obfuscation on, plus HTTP/2 + TLS fragmentation + ECH for MASQUE)
-     *      on the full budget.
+     * 1. a first pass exactly as configured, on a capped budget, and
+     * 2. if that fails, the SAME protocol again with anti-DPI hardening
+     * (obfuscation on, plus HTTP/2 + TLS fragmentation + ECH for MASQUE)
+     * on the full budget.
      * The protocol the user chose is never swapped for another one.
      */
     private fun directPlan(profile: ConnectionProfile): List<AutoCandidate> {
@@ -278,7 +278,7 @@ class SoildTunnelVpnService : VpnService() {
     ) {
         SoildTunnelController.setState(ConnectionState.Launching)
         updateNotification(getString(R.string.state_launching))
-        //  PROTOCOL-SWITCH FIX: never start an engine on top of a dying
+        // PROTOCOL-SWITCH FIX: never start an engine on top of a dying
         // one. Tear the previous natives down and wait for the local SOCKS5
         // port to be released first, otherwise the probe below can "see" the
         // old listener and the whole attempt is verified against a socket that
@@ -392,7 +392,7 @@ class SoildTunnelVpnService : VpnService() {
         while (currentScopeActive()) {
             if (engine?.isAlive() == true) {
                 attempt = 0
-                //  CPU FIX: the supervisor used to wake up every 2 s for
+                // CPU FIX: the supervisor used to wake up every 2 s for
                 // the ENTIRE lifetime of the tunnel just to ask "is the engine
                 // still alive?" — 1,800 wake-ups per hour of a healthy,
                 // otherwise idle connection, each one preventing the CPU from
@@ -401,7 +401,7 @@ class SoildTunnelVpnService : VpnService() {
                 // wakes us the instant the engine exits and never before, so a
                 // healthy tunnel costs exactly zero polling.
                 engine?.awaitExit(WATCHDOG_INTERVAL_MS)
-                // STABILITY WATCHDOG (, hardened): the engine process can
+                // STABILITY WATCHDOG (hardened): the engine process can
                 // stay alive while its session silently dies -- the classic
                 // "connected, but after a minute or two no site opens"
                 // symptom. Probe end-to-end THROUGH the local SOCKS5 port and
@@ -508,7 +508,7 @@ class SoildTunnelVpnService : VpnService() {
      *
      * - OFF     : everything routes through the VPN except our own package.
      * - INCLUDE : ONLY the chosen apps route through the VPN. Our own package is
-     *             implicitly excluded because it is never added to the allow-list.
+     * implicitly excluded because it is never added to the allow-list.
      * - EXCLUDE : everything routes through the VPN except the chosen apps + us.
      */
     private fun applyAppFilter(builder: Builder, profile: ConnectionProfile) {
@@ -623,12 +623,12 @@ class SoildTunnelVpnService : VpnService() {
         val job = runJob
         runJob = null
         // DISCONNECT MUST BE INSTANT. Order matters:
-        //   1. cancel the session coroutine (does not wait for it),
-        //   2. kill the natives right away — this is what actually makes the
-        //      tunnel stop, and it also unblocks any wait the session
-        //      coroutine is parked in,
-        //   3. flip the UI to Idle and drop the foreground notification,
-        //   4. only THEN join the finished coroutine, off the critical path.
+        // 1. cancel the session coroutine (does not wait for it),
+        // 2. kill the natives right away — this is what actually makes the
+        // tunnel stop, and it also unblocks any wait the session
+        // coroutine is parked in,
+        // 3. flip the UI to Idle and drop the foreground notification,
+        // 4. only THEN join the finished coroutine, off the critical path.
         // The previous order (join → cleanup) made the button sit on
         // "Disconnecting…" for as long as the supervisor's engine wait had
         // left to run — up to a full minute.
@@ -653,7 +653,7 @@ class SoildTunnelVpnService : VpnService() {
         if (profile.smartReconnect) profile.reconnectRetryLimit.coerceIn(1, 50) else 50
 
     /**
-     * WATCHDOG PROBE, hardened ( periodic-outage root-cause fix).
+     * WATCHDOG PROBE, hardened (periodic-outage root-cause fix).
      *
      * The old probe was a single TCP connect to .1:53 with a 5 s
      * timeout. On high-RTT, lossy links (the tunnel's own baseline RTT is
@@ -697,7 +697,7 @@ class SoildTunnelVpnService : VpnService() {
     }.getOrDefault(false)
 
     /**
-     * KILL SWITCH lockdown (): stop the engine and the forwarder but
+     * KILL SWITCH lockdown: stop the engine and the forwarder but
      * KEEP a blocking full-tunnel TUN up, so every packet is blackholed
      * instead of leaking direct. The service stays foreground; connecting
      * again or disconnecting lifts the lockdown.
@@ -855,7 +855,7 @@ class SoildTunnelVpnService : VpnService() {
         private val BACKOFF = longArrayOf(2000L, 5000L, 10000L)
 
         /**
-         * Upper bound for one blocking wait on the engine process ().
+         * Upper bound for one blocking wait on the engine process.
          * The supervisor no longer polls; it parks on the process itself and
          * only wakes up this often to re-check its own cancellation state.
          */
@@ -873,16 +873,16 @@ class SoildTunnelVpnService : VpnService() {
 
         /**
          * Attempts per watchdog check, rotating over anycast resolvers so one
-         * blocked or slow target can never fake a dead tunnel ( fix).
+         * blocked or slow target can never fake a dead tunnel (fix).
          */
         private const val PROBE_ATTEMPTS = 3
-        private val PROBE_TARGETS = arrayOf(".1:53", "1.0.0.1:53", "9.9.9.9:53")
+        private val PROBE_TARGETS = arrayOf("1.1.1.1:53", "1.0.0.1:53", "9.9.9.9:53")
         private const val PROBE_TIMEOUT_MS = 8_000
         private const val PROBE_RETRY_GAP_MS = 1_500L
 
         /**
          * How long to wait for the previous engine to release the local SOCKS5
-         * port before starting a new one ( protocol-switch fix).
+         * port before starting a new one (protocol-switch fix).
          */
         private const val PORT_RELEASE_WAIT_MS = 3_000L
 

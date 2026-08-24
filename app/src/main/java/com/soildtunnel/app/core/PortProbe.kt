@@ -34,7 +34,7 @@ object PortProbe {
         isEngineAlive: () -> Boolean = { true },
     ): Boolean {
         val deadline = System.currentTimeMillis() + totalTimeoutMs
-        //  CPU FIX: the poll is now adaptive instead of a flat 300 ms for
+        // CPU FIX: the poll is now adaptive instead of a flat 300 ms for
         // the entire window. The engine either opens its port within the first
         // few seconds (fast path — keep the tight interval so we notice
         // immediately) or it is doing a long endpoint scan that can run for
@@ -60,7 +60,7 @@ object PortProbe {
     /**
      * Waits until nothing is listening on [port] any more.
      *
-     *  PROTOCOL-SWITCH FIX: a new engine must never be started while the
+     * PROTOCOL-SWITCH FIX: a new engine must never be started while the
      * previous one still owns the local SOCKS5 port, otherwise the connect
      * either races a dying listener or verifies against it. Polls at a very
      * cheap 100 ms because a released localhost port is what the user is

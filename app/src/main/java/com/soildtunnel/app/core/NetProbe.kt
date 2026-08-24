@@ -29,12 +29,12 @@ data class IpEndpoint(val ip: String, val countryCode: String?, val viaTunnel: B
  * Low-level, dependency-free network probes.
  *
  * These use RAW sockets on purpose:
- *   1. Raw sockets are exempt from Android's cleartext-traffic policy, so the
- *      plain-HTTP geolocation probe works without extra manifest config.
- *   2. A hand-rolled SOCKS5 client lets us send the destination as a DOMAIN
- *      (ATYP=0x03) so DNS is resolved REMOTELY by the engine — exactly what a
- *      real browser tab does through the tunnel. That makes the probe a true
- *      end-to-end test of DNS + TCP + the proxy path in one shot.
+ * 1. Raw sockets are exempt from Android's cleartext-traffic policy, so the
+ * plain-HTTP geolocation probe works without extra manifest config.
+ * 2. A hand-rolled SOCKS5 client lets us send the destination as a DOMAIN
+ * (ATYP=0x03) so DNS is resolved REMOTELY by the engine — exactly what a
+ * real browser tab does through the tunnel. That makes the probe a true
+ * end-to-end test of DNS + TCP + the proxy path in one shot.
  *
  * Because the app package is excluded from the VPN (addDisallowedApplication),
  * a direct socket bypasses the tunnel (→ operator/real IP) while a socket routed
@@ -65,7 +65,7 @@ object NetProbe {
     private val GEO_PROVIDERS = listOf(
         GeoProvider("ip-api.com", 80, "/json/?fields=status,query,countryCode", tls = false, hostIsDomain = true),
         GeoProvider("www.cloudflare.com", 443, "/cdn-cgi/trace", tls = true, hostIsDomain = true),
-        GeoProvider(".1", 80, "/cdn-cgi/trace", tls = false, hostIsDomain = false),
+        GeoProvider("1.1.1.1", 80, "/cdn-cgi/trace", tls = false, hostIsDomain = false),
     )
 
     // ---- Public: geolocation --------------------------------------------
@@ -157,7 +157,7 @@ object NetProbe {
         val remaining = AtomicInteger(GEO_PROVIDERS.size)
         val done = CountDownLatch(1)
         for (p in GEO_PROVIDERS) {
-            //  CPU/MEMORY FIX: run the race on a SHARED, recycled pool
+            // CPU/MEMORY FIX: run the race on a SHARED, recycled pool
             // instead of spawning brand-new OS threads on every call. This
             // function runs on connect, on every reconnect and on each IP
             // refresh; each invocation used to create one raw thread per
@@ -423,7 +423,7 @@ object NetProbe {
 
     private fun parseIpInfo(response: String): IpInfo? {
         val body = response.substringAfter("\r\n\r\n", "")
-        // Format 1: ip-api.com JSON  {"query":".4","countryCode":"DE"}
+        // Format 1: ip-api.com JSON  {"query":"1.2.3.4","countryCode":"DE"}
         val ip = Regex("\"query\"\\s*:\\s*\"([^\"]+)\"").find(body)?.groupValues?.get(1)
         if (ip != null) {
             val cc = Regex("\"countryCode\"\\s*:\\s*\"([^\"]+)\"").find(body)?.groupValues?.get(1)

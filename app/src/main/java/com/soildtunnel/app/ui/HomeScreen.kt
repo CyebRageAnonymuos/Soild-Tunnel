@@ -92,7 +92,7 @@ fun HomeScreen(
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val drawerScope = rememberCoroutineScope()
-    //  UI-SPEED FIX: ModalNavigationDrawer composes its drawer content
+    // UI-SPEED FIX: ModalNavigationDrawer composes its drawer content
     // even while the drawer is CLOSED, so the diagnostics, share, advanced and
     // about cards were live at all times — recomposing on every profile change
     // and on every log line, behind a panel nobody was looking at. They are now
@@ -207,7 +207,7 @@ fun HomeScreen(
 
                 Spacer(Modifier.height(28.dp))
 
-                // : status, timer, IP, speeds and the protocol row used to
+                // Status, timer, IP, speeds and the protocol row used to
                 // be four separate floating surfaces here. They are one unified
                 // glass card now - see ConnectionCard.
                 ConnectionCard(
@@ -288,7 +288,7 @@ fun HomeScreen(
                     .navigationBarsPadding()
                     .padding(bottom = 32.dp),
             ) {
-                //  UI-SPEED FIX: the advanced card is ~40 controls tall and
+                // UI-SPEED FIX: the advanced card is ~40 controls tall and
                 // used to be composed in the SAME frame the sheet starts its
                 // slide-in animation, so the sheet visibly stuttered on open.
                 // The first frame now shows the empty sheet (instant) and the

@@ -67,7 +67,7 @@ class SoildTunnelProcess(
      * Blocks until the engine exits or [timeoutMs] elapses; returns true if it
      * exited.
      *
-     *  CPU FIX: the VpnService supervisor used to poll `isAlive()` every
+     * CPU FIX: the VpnService supervisor used to poll `isAlive()` every
      * two seconds for the whole life of the tunnel. That is thousands of
      * pointless wake-ups per session on a connection that is perfectly
      * healthy, and it keeps the CPU out of deep idle. `Process.waitFor` parks
@@ -96,7 +96,7 @@ class SoildTunnelProcess(
     /**
      * Stops the engine and does not return until the OS has really reaped it.
      *
-     *  PROTOCOL-SWITCH FIX: this used to be a fire-and-forget
+     * PROTOCOL-SWITCH FIX: this used to be a fire-and-forget
      * `destroy()`. `destroy()` only *asks* the process to exit, so the old
      * engine was often still alive — and still holding the local SOCKS5
      * listener on 127.0.0.1:1819 — while the next connect was already

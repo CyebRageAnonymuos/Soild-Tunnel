@@ -29,7 +29,7 @@ class ProfileStore(private val context: Context) {
         val quick = booleanPreferencesKey("quick")
         val h2 = booleanPreferencesKey("h2")
         val share = booleanPreferencesKey("share")
-        // Added in 
+        // Added later
         val noize = stringPreferencesKey("noize")
         val endpoint = stringPreferencesKey("endpoint")
         val peer = stringPreferencesKey("peer")
@@ -49,7 +49,7 @@ class ProfileStore(private val context: Context) {
         val gateway = booleanPreferencesKey("gateway")
         val routeBlock = stringPreferencesKey("routeBlock")
         val routeDirect = stringPreferencesKey("routeDirect")
-        // Added in  (feature parity)
+        // Added later (feature parity)
         val killSwitch = booleanPreferencesKey("killSwitch")
         val strictKillSwitch = booleanPreferencesKey("strictKillSwitch")
         val ipv6Leak = booleanPreferencesKey("ipv6Leak")

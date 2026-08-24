@@ -45,11 +45,11 @@ enum class ButtonMode { IDLE, BUSY, CONNECTED, ERROR }
  *
  * Three stacked layers, back to front:
  *
- *   1. HALO       - a soft radial bloom of the mode colour behind everything;
- *   2. GLASS RING - a floating translucent ring (glassPane recipe: fill + sheen
- *                   + bright rim), which is what makes the orb read as glass;
- *   3. DISC       - the tappable core: an accent-tinted pool holding the power
- *                   glyph, plus a travelling arc while connecting.
+ * 1. HALO       - a soft radial bloom of the mode colour behind everything;
+ * 2. GLASS RING - a floating translucent ring (glassPane recipe: fill + sheen
+ * + bright rim), which is what makes the orb read as glass;
+ * 3. DISC       - the tappable core: an accent-tinted pool holding the power
+ * glyph, plus a travelling arc while connecting.
  *
  * PERFORMANCE CONTRACT (this app has history - see AmbientBackground): infinite
  * animations live inside [OrbHalo], [BusyArc] and [SpinningGlyph], each of which
