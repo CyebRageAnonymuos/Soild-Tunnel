@@ -1,0 +1,460 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NDK_VERSION: "26.3.11579264"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: |
+          yes | sdkmanager "ndk;${NDK_VERSION}" > /dev/null
+          echo "ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Set up Rust (Android targets)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
+
+      # This repo intentionally ships no gradle-wrapper.jar, so the build runs
+      # with the Gradle that is on PATH. Leaving that to the runner image is a
+      # time bomb: GitHub keeps bumping its preinstalled Gradle, and AGP 8.7.2
+      # only supports the 8.x line (Gradle 9 fails the build outright with an
+      # "unsupported" / plugin-compatibility error). Pin the exact version the
+      # wrapper descriptor already declares so the toolchain can never drift.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Show build toolchain
+        run: |
+          gradle --version
+          java -version 2>&1
+
+      - name: Fetch native sources
+        run: bash scripts/fetch-natives.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build tunnel core (hev)
+        run: bash scripts/build-natives.sh hev
+
+      # The engine is built from the source vendored in this repo
+      # (native/engine/soildtunnel), so a release can never be broken by an
+      # external repository changing under us.
+      - name: Build engine (SoildTunnel)
+        run: bash scripts/build-natives.sh soildtunnel
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Signing: ALWAYS sign with a STABLE key so users can update in place
+      # (Android only installs an update when old and new APKs share the same
+      # signature). Priority:
+      #   1. Your own keystore from repo Secrets (recommended for real releases).
+      #   2. A CI keystore persisted in the repo (.github/ci-keystore.jks.b64):
+      #      generated ONCE on the first build and committed back automatically,
+      #      so every later build reuses the exact same key. Without this, each
+      #      build used a fresh debug key and users had to uninstall on every
+      #      update.
+      # NOTE: the repo-persisted CI keystore is public by definition. It solves
+      # updatability, not authenticity - set the Secrets for real distribution.
+      - name: Prepare signing keystore (stable across builds)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          SECRET_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SECRET_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SECRET_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          # AUTHORITATIVE KEY (the release key). When the four
+          # signing secrets are configured in the repository, the APK is signed
+          # so existing users can
+          # install straight over their existing app. Only in this mode
+          # is the fingerprint pinned and enforced.
+          if [ -n "${KEYSTORE_BASE64}" ]; then
+            echo "Using the user-provided release keystore from repository Secrets."
+            echo "${KEYSTORE_BASE64}" | base64 -d > "${RUNNER_TEMP}/release.keystore"
+            {
+              echo "KEYSTORE_PATH=${RUNNER_TEMP}/release.keystore"
+              echo "KEYSTORE_PASSWORD=${SECRET_KEYSTORE_PASSWORD}"
+              echo "KEY_ALIAS=${SECRET_KEY_ALIAS}"
+              echo "KEY_PASSWORD=${SECRET_KEY_PASSWORD}"
+              echo "SOILDTUNNEL_SIGNING_MODE=release"
+            } >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          # TEST KEY. No signing secrets in this repository, so we fall back to
+          # a throwaway CI certificate. APKs signed this way are for TESTING
+          # ONLY: they can never be installed over an app signed with the real
+          # key. Nothing about this key is pinned or enforced, so building the
+          # project in a scratch repository can NEVER poison the over-install
+          # guarantee of the real release repository.
+          echo "::warning::No signing secrets found - building with a TEST certificate."
+          echo "::warning::This APK cannot be installed over an existing install."
+          echo "::warning::Add KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD to sign with the real release key."
+          echo "SOILDTUNNEL_SIGNING_MODE=test" >> "$GITHUB_ENV"
+
+          KS="${RUNNER_TEMP}/ci-release.keystore"
+          if [ -f .github/ci-keystore.jks.b64 ]; then
+            echo "Reusing the persisted CI keystore (same signature as previous builds)."
+            base64 -d .github/ci-keystore.jks.b64 > "$KS"
+          else
+            # OVER-INSTALL GUARD: if this repository has already published
+            # releases signed with a persisted CI key, its fingerprint was
+            # recorded in .github/expected-signer-ci.txt. Minting a brand new
+            # key here would silently produce an APK that existing users can
+            # NOT install over their current app, so stop instead.
+            if [ -f .github/expected-signer-ci.txt ]; then
+              echo "::error::.github/ci-keystore.jks.b64 is missing but this repo already published with a persisted CI key."
+              echo "::error::Restore .github/ci-keystore.jks.b64 (it is the key that signed the previous release),"
+              echo "::error::or add the KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD secrets."
+              echo "::error::Building now would produce an APK that users could not install over their current version."
+              exit 1
+            fi
+            echo "First build: generating a CI keystore and persisting it to the repo."
+            keytool -genkeypair -v -keystore "$KS" \
+              -storepass soildtunnel-ci-keystore -keypass soildtunnel-ci-keystore \
+              -alias soildtunnel-ci -keyalg RSA -keysize 2048 -validity 10950 \
+              -dname "CN=SoildTunnel Mobile CI, OU=SoildTunnelMobile, O=SoildTunnel"
+            base64 -w0 "$KS" > .github/ci-keystore.jks.b64
+            if [ "${GITHUB_REF_TYPE}" = "branch" ]; then
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add .github/ci-keystore.jks.b64
+              git commit -m "ci: persist auto-generated signing keystore [skip ci]"
+              # An earlier step in this same run may already have pushed the
+              # core upgrade, so rebase before pushing instead of racing it.
+              git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+              git push origin "HEAD:${GITHUB_REF_NAME}" \
+                || echo "WARNING: could not push the keystore back; the next build may sign with a different key."
+            else
+              echo "WARNING: tag build without a persisted keystore - push to a branch first so the keystore gets committed."
+            fi
+          fi
+          {
+            echo "KEYSTORE_PATH=$KS"
+            echo "KEYSTORE_PASSWORD=soildtunnel-ci-keystore"
+            echo "KEY_ALIAS=soildtunnel-ci"
+            echo "KEY_PASSWORD=soildtunnel-ci-keystore"
+          } >> "$GITHUB_ENV"
+
+      # ROOT FIX for "it builds in a fresh repo but fails in the real one":
+      # copying sources over an older checkout overwrites changed files but
+      # cannot delete the files this version REMOVED (the in-app updater, the location
+      # picker, the forced-exit policy). Those orphans still reference symbols
+      # and string resources that no longer exist, so compileReleaseKotlin died
+      # with "Unresolved reference 'GITHUB_REPO' / 'update_available' / ...".
+      # The build now deletes them itself (and hard-fails early on any other
+      # stale string reference), so a leftover file can never break a release.
+      - name: Purge stale sources from older versions
+        run: bash scripts/purge-stale-sources.sh
+
+      # Keep the repository itself clean, so the next build starts from a tree
+      # that no longer contains the orphans. Best-effort: a failed push must
+      # never fail a release.
+      - name: Commit stale-source purge
+        if: github.ref_type == 'branch'
+        run: |
+          set -uo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing to commit - the tree was already clean."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "ci: remove sources deleted in the current version [skip ci]" || exit 0
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push origin "HEAD:${GITHUB_REF_NAME}" \
+            || echo "WARNING: could not push the purge commit; the next build will purge again."
+
+      # A release must never die because an artifact repository had a bad
+      # minute. The build in the release repository failed with
+      # "Received status code 403 from server: Forbidden" from Maven Central on
+      # EVERY buildscript dependency, so the root project could not even be
+      # configured. settings.gradle.kts now has a mirror to fall through to,
+      # and this step retries a failure that is clearly a download problem
+      # (403/408/429/5xx, timeouts, "Could not resolve"). A real build error is
+      # never retried, so a genuine compile failure still fails fast.
+      - name: Build release APKs
+        env:
+          # Kotlin/Compose compilation needs more heap than the 1 GB Gradle
+          # default on the hosted runners.
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8"
+        run: |
+          set -uo pipefail
+          LOG="${RUNNER_TEMP:-/tmp}/gradle-release-build.log"
+          for attempt in 1 2 3; do
+            set +e
+            gradle :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee "$LOG"
+            status=${PIPESTATUS[0]}
+            set -e
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+            if ! grep -qE 'Could not (resolve|GET|get resource|download)|Received status code (403|408|429|50[0-9])|Read timed out|Connection reset|Premature end of Content-Length' "$LOG"; then
+              echo "::error::Release build failed for a reason that is NOT an artifact download problem - not retrying."
+              exit "$status"
+            fi
+            if [ "$attempt" -ge 3 ]; then
+              echo "::error::Dependency download kept failing after 3 attempts (Maven Central / plugin portal unreachable or blocking this runner)."
+              exit "$status"
+            fi
+            echo "::warning::Attempt ${attempt} failed while downloading dependencies - retrying in $((attempt * 30))s."
+            sleep $((attempt * 30))
+          done
+
+      # PLAY-PROTECT SAFEGUARD: never publish an APK that is unsigned or
+      # debug-signed. Throwaway debug certificates (a different one on every
+      # machine/runner) are exactly what makes Google show "Play Protect
+      # hasn't seen an app from this developer before" on install. Also
+      # require the modern v2 signature scheme on every APK.
+      - name: Verify release signature (Play Protect safeguard)
+        run: |
+          set -euo pipefail
+          BT="$(ls -d "${ANDROID_SDK_ROOT}"/build-tools/* | sort -V | tail -n1)"
+          found=0
+          for apk in app/build/outputs/apk/release/*.apk; do
+            [ -f "$apk" ] || continue
+            found=1
+            "${BT}/apksigner" verify --verbose --print-certs "$apk" > /tmp/sig.txt
+            grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" /tmp/sig.txt \
+              || { echo "ERROR: $apk lacks an APK Signature Scheme v2 signature"; exit 1; }
+            if grep -qi "CN=Android Debug" /tmp/sig.txt; then
+              echo "ERROR: $apk is signed with a DEBUG certificate — refusing to publish"; exit 1
+            fi
+
+            # OVER-INSTALL GUARANTEE: Android refuses to update an
+            # installed app when the new APK is signed by a different
+            # certificate (INSTALL_FAILED_UPDATE_INCOMPATIBLE), which is what
+            # forced existing users to uninstall first and lose their settings.
+            # We pin the expected signer fingerprint: if a build ever produces
+            # a different certificate than the one shipped with, the
+            # build FAILS here instead of shipping an APK users cannot install
+            # on top of their current version.
+            # Robust fingerprint extraction. The previous pattern required an
+            # exact "Signer #1 certificate SHA-256 digest: " prefix and matched
+            # nothing on this runner, so an EMPTY fingerprint was pinned and the
+            # whole over-install guarantee silently became a no-op. Now we grab
+            # the first 64-hex digest on any SHA-256 line, fall back to keytool,
+            # and HARD FAIL if we still cannot determine it.
+            SHA="$(tr -d '\r' < /tmp/sig.txt \
+              | sed -n 's/.*SHA-256 digest:[[:space:]]*\([0-9a-fA-F]\{64\}\).*/\1/p' \
+              | head -n1 | tr 'A-F' 'a-f')"
+            if [ -z "$SHA" ]; then
+              SHA="$(keytool -printcert -jarfile "$apk" 2>/dev/null \
+                | tr -d '\r' \
+                | sed -n 's/.*SHA-?256:[[:space:]]*\([0-9A-Fa-f:]\{95,\}\).*/\1/p' \
+                | head -n1 | tr -d ':' | tr 'A-F' 'a-f')"
+            fi
+            if ! printf '%s' "$SHA" | grep -Eq '^[0-9a-f]{64}$'; then
+              echo "ERROR: could not extract the signer SHA-256 fingerprint from $apk."
+              echo "Refusing to continue: an empty fingerprint would disable the"
+              echo "over-install protection that keeps users from having to uninstall."
+              sed -n '1,40p' /tmp/sig.txt
+              exit 1
+            fi
+            echo "Signer SHA-256: ${SHA}"
+            # In TEST signing mode the certificate is a throwaway one, so it is
+            # meaningless to compare or record it. We only report it.
+            if [ "${SOILDTUNNEL_SIGNING_MODE:-test}" != "release" ]; then
+              # The CI key is a throwaway one, but it is the SAME throwaway key
+              # on every build of this repository (it lives in
+              # .github/ci-keystore.jks.b64), and the previous release was published with it.
+              # So its fingerprint still decides whether users can update in
+              # place. Pin it PER REPOSITORY: if it ever changes, fail here
+              # instead of publishing an APK that cannot be installed over the
+              # previous version. A scratch repository pins its own value and
+              # can never affect the real one.
+              if [ -f .github/expected-signer-ci.txt ] \
+                 && grep -Eq '^[0-9a-fA-F]{64}$' .github/expected-signer-ci.txt; then
+                EXPECTED_CI="$(grep -Eo '^[0-9a-fA-F]{64}$' .github/expected-signer-ci.txt | tr 'A-F' 'a-f' | head -n1)"
+                if [ "$EXPECTED_CI" != "$SHA" ]; then
+                  echo "ERROR: the CI signing certificate changed!"
+                  echo "  expected: ${EXPECTED_CI}"
+                  echo "  actual:   ${SHA}"
+                  echo "Users of the previous release could NOT install this update over it."
+                  echo "Restore .github/ci-keystore.jks.b64 from the previous release commit."
+                  exit 1
+                fi
+                echo "CI signer matches the previous release - users can update in place."
+              else
+                echo "${SHA}" > /tmp/expected-signer-ci.txt
+                echo "NOTE: recording this CI signer fingerprint for future builds."
+              fi
+              echo "Signature OK (test key): $apk"
+              continue
+            fi
+
+            if [ -f .github/expected-signer.txt ] \
+               && grep -Eq '^[0-9a-fA-F]{64}$' .github/expected-signer.txt; then
+              EXPECTED="$(grep -Eo '^[0-9a-fA-F]{64}$' .github/expected-signer.txt | tr 'A-F' 'a-f' | head -n1)"
+              if [ -n "$EXPECTED" ] && [ "$EXPECTED" != "$SHA" ]; then
+                echo "ERROR: signer certificate changed!"
+                echo "  expected: ${EXPECTED}"
+                echo "  actual:   ${SHA}"
+                echo "Users could NOT over-install on top of the existing release. Refusing to publish."
+                exit 1
+              fi
+              echo "Signer matches the pinned certificate - existing users can over-install."
+            else
+              echo "${SHA}" > /tmp/expected-signer.txt
+              echo "NOTE: no pinned signer yet; recording this fingerprint."
+            fi
+            echo "Signature OK: $apk"
+          done
+          [ "$found" -eq 1 ] || { echo "ERROR: no release APKs found to verify"; exit 1; }
+
+      # Persist the signer fingerprint on the first build so every later build
+      # is checked against it automatically.
+      - name: Pin signer fingerprint (first build only)
+        if: github.ref_type == 'branch'
+        run: |
+          set -euo pipefail
+          [ -f /tmp/expected-signer.txt ] || exit 0
+          # Only the REAL release key (from repository Secrets) may ever be
+          # pinned. A throwaway CI/test certificate must never be written into
+          # the repository.
+          if [ "${SOILDTUNNEL_SIGNING_MODE:-test}" != "release" ]; then
+            echo "TEST signing mode: not pinning a throwaway certificate."
+            exit 0
+          fi
+          # A previous build committed an EMPTY fingerprint file, which made the
+          # pin check pass unconditionally. Treat a file without a valid 64-hex
+          # value as "not pinned yet" and rewrite it.
+          if [ -f .github/expected-signer.txt ] \
+             && grep -Eq '^[0-9a-fA-F]{64}$' .github/expected-signer.txt; then
+            exit 0
+          fi
+          {
+            echo "# SHA-256 of the certificate that signs every SoildTunnel release."
+            echo "# Recorded automatically on the first build. Do not edit by hand:"
+            echo "# if this value changes, existing users can no longer install an update"
+            echo "# over their current app (they would have to uninstall and lose settings)."
+            cat /tmp/expected-signer.txt
+          } > .github/expected-signer.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/expected-signer.txt
+          git commit -m "ci: pin release signer fingerprint for over-install compatibility [skip ci]"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push origin "HEAD:${GITHUB_REF_NAME}" \
+            || echo "WARNING: could not push the pinned signer fingerprint."
+
+      # Persist the CI signer fingerprint (test-signing mode) so every later
+      # build of THIS repository is checked against the certificate the
+      # previous release was signed with.
+      - name: Pin CI signer fingerprint
+        if: github.ref_type == 'branch'
+        run: |
+          set -euo pipefail
+          [ -f /tmp/expected-signer-ci.txt ] || exit 0
+          if [ -f .github/expected-signer-ci.txt ] \
+             && grep -Eq '^[0-9a-fA-F]{64}$' .github/expected-signer-ci.txt; then
+            exit 0
+          fi
+          {
+            echo "# SHA-256 of the CI certificate that signs this repository's APKs."
+            echo "# Recorded automatically. If this value ever changes, users cannot"
+            echo "# install a new release over the one they already have, so the build"
+            echo "# fails instead of publishing such an APK."
+            cat /tmp/expected-signer-ci.txt
+          } > .github/expected-signer-ci.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/expected-signer-ci.txt
+          git commit -m "ci: pin CI signer fingerprint for over-install compatibility [skip ci]"
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+          git push origin "HEAD:${GITHUB_REF_NAME}" \
+            || echo "WARNING: could not push the pinned CI signer fingerprint."
+
+      # Do not publish an APK that can only run proxy mode. Full VPN mode needs
+      # both native cores for every ABI contained in that APK.
+      - name: Verify native libraries inside APKs
+        run: |
+          set -euo pipefail
+          found=0
+          for apk in app/build/outputs/apk/release/*.apk; do
+            [ -f "$apk" ] || continue
+            found=1
+            entries="$(unzip -Z1 "$apk")"
+            mapfile -t abis < <(printf '%s\n' "$entries" | sed -n 's#^lib/\([^/]*\)/libsoildtunnel-core\.so$#\1#p')
+            [ "${#abis[@]}" -gt 0 ] || { echo "ERROR: no libsoildtunnel-core.so in $apk"; exit 1; }
+            for abi in "${abis[@]}"; do
+              printf '%s\n' "$entries" | grep -qx "lib/${abi}/libhev-socks5-tunnel.so" \
+                || { echo "ERROR: $apk lacks hev for $abi"; exit 1; }
+              printf '%s\n' "$entries" | grep -qx "lib/${abi}/libsoildtunnel-jni.so" \
+                || { echo "ERROR: $apk lacks the soildtunnel JNI bridge for $abi"; exit 1; }
+            done
+            echo "Verified native cores in $apk (${abis[*]})"
+          done
+          [ "$found" -eq 1 ] || { echo "ERROR: no release APKs found"; exit 1; }
+
+      - name: Collect and rename APKs
+        run: |
+          set -euo pipefail
+          # Match the assignment specifically
+          # "versionName" must not be able to rename every published artifact.
+          VERSION_NAME="$(grep -m1 -E '^[[:space:]]*versionName[[:space:]]*=' app/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')"
+          [ -n "$VERSION_NAME" ] || { echo "ERROR: could not read versionName"; exit 1; }
+          echo "VERSION_NAME=${VERSION_NAME}" >> "$GITHUB_ENV"
+          OUT=artifacts
+          mkdir -p "$OUT"
+          declare -A MAP=(
+            ["arm64-v8a"]="arm64-v8a"
+            ["armeabi-v7a"]="armeabi-v7a"
+            ["universal"]="universal"
+          )
+          for key in "${!MAP[@]}"; do
+            src="$(find app/build/outputs/apk/release -iname "*${key}*.apk" | head -n1)"
+            if [ -n "$src" ]; then
+              cp "$src" "${OUT}/SoildTunnel-${VERSION_NAME}-${MAP[$key]}.apk"
+            fi
+          done
+          echo "Built APKs:"
+          ls -la "$OUT"
+
+      # Publish a Release on every successful build: each APK shows up as its
+      # own downloadable asset. The release TITLE is just "SoildTunnel vX.Y.Z"
+      # (no "(build N)" suffix); the tag still embeds the run number so every
+      # build gets a unique tag. The "What's new" body comes from
+      # .github/release-notes.md - update that file whenever the version changes.
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v{0}-build.{1}', env.VERSION_NAME, github.run_number) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('SoildTunnel {0}', github.ref_name) || format('SoildTunnel v{0}', env.VERSION_NAME) }}
+          files: artifacts/*.apk
+          make_latest: true
+          body_path: .github/release-notes.md

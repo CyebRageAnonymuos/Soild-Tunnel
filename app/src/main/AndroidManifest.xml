@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+      SECURITY: REQUEST_INSTALL_PACKAGES was REMOVED together with the
+      in-app updater. The app can no longer download or hand an APK to the
+      system package installer, so there is no runtime code-delivery path at
+      all. Updates come exclusively from the officially signed GitHub Release
+      page. This also drops the most over-privileged permission in the
+      previous manifest.
+    -->
+
+    <!-- Split tunneling needs to list the device's launchable apps so the user
+         can pick which apps to include/exclude from the tunnel. We only query
+         launcher-visible apps (not QUERY_ALL_PACKAGES), which keeps Play policy
+         happy and avoids the sensitive all-packages permission. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".SoildTunnelApp"
+        android:allowBackup="false"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.SoildTunnel">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|density"
+            android:theme="@style/Theme.SoildTunnel"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".vpn.SoildTunnelVpnService"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:foregroundServiceType="specialUse">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Runs the SoildTunnel censorship-circumvention VPN tunnel while active" />
+        </service>
+
+        <!-- Quick Settings tile: one-tap connect/disconnect from the shade. -->
+        <service
+            android:name=".vpn.SoildTunnelTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_notification"
+            android:label="@string/qs_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!--
+          Home-screen widget (feature merge): one-tap connect /
+          disconnect plus live status on the launcher. Not exported; only the
+          system AppWidgetService delivers updates to it, and our toggle
+          broadcast is sent with an explicit component, so no other app can
+          trigger it. updatePeriodMillis=0 — repaints are pushed from the VPN
+          service's state-change hook, never on a timer.
+        -->
+        <receiver
+            android:name=".widget.SoildTunnelWidgetProvider"
+            android:exported="false"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/soildtunnel_widget_info" />
+        </receiver>
+
+        <!--
+          Crash report screen (feature merge): shows the fatal
+          exception saved by SoildTunnelApp's crash handler on the previous run.
+          Not exported; only MainActivity can open it.
+        -->
+        <activity
+            android:name=".CrashReportActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SoildTunnel" />
+
+        <!--
+          The FileProvider that exports downloaded APKs to the system
+          installer was removed along with the in-app updater. The app now
+          exports no content provider whatsoever.
+        -->
+
+    </application>
+</manifest>

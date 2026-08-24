@@ -1,0 +1,29 @@
+# Gradle / Android
+.gradle/
+build/
+/local.properties
+/captures
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Native cores fetched/built at CI time (never commit binaries)
+app/src/main/jniLibs/
+app/src/main/cpp/hev-socks5-tunnel/
+
+# Build-time working copy of native sources (the engine is vendored under
+# native/engine instead — THAT one is committed; this .native cache is not).
+.native/
+native/engine/target/
+
+# Signing (NEVER commit signing credentials)
+keystore.properties
+release.keystore

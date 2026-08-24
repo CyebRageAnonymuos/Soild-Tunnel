@@ -1,0 +1,35 @@
+# Files that 1.2.2 DELETED.
+#
+# When 1.2.2 is copied on top of an older (1.2.1) repository, deleted files are
+# not removed by the copy and stay behind as orphans. They still reference
+# symbols and string resources that no longer exist, which breaks the Kotlin
+# compile even though the shipped source tree is fine. scripts/purge-stale-sources.sh
+# removes exactly the paths listed here before the build, so a release can never
+# be broken by a leftover file again.
+#
+# One repo-relative path per line. Only app/, native/engine/soildtunnel/src/ and
+# docs/ paths are accepted.
+
+# --- in-app updater (removed in 1.2.2: the app no longer downloads APKs) ---
+app/src/main/java/com/soildtunnel/app/core/UpdateChecker.kt
+app/src/main/java/com/soildtunnel/app/core/UpdateInstaller.kt
+app/src/main/java/com/soildtunnel/app/core/UpdateDownloader.kt
+app/src/main/java/com/soildtunnel/app/ui/components/UpdatePrompt.kt
+app/src/main/java/com/soildtunnel/app/ui/components/UpdateDialog.kt
+app/src/main/java/com/soildtunnel/app/ui/UpdatePanel.kt
+
+# --- country / location picker (removed in 1.2.2: anycast makes it meaningless) ---
+app/src/main/java/com/soildtunnel/app/core/Locations.kt
+app/src/main/java/com/soildtunnel/app/ui/components/LocationPanel.kt
+
+# --- forced clean-exit policy (removed in 1.2.2 at the user's request) ---
+app/src/main/java/com/soildtunnel/app/core/CleanExit.kt
+app/src/main/java/com/soildtunnel/app/core/ExitGuard.kt
+app/src/main/java/com/soildtunnel/app/core/BadEdgeStore.kt
+app/src/main/java/com/soildtunnel/app/ui/components/ExitPolicyCard.kt
+native/engine/soildtunnel/src/geoguard.rs
+
+# --- superseded by the unified connection card (removed in 1.2.6) ---
+app/src/main/java/com/soildtunnel/app/ui/components/StatusLine.kt
+app/src/main/java/com/soildtunnel/app/ui/components/TrafficPanel.kt
+app/src/main/java/com/soildtunnel/app/ui/components/ConnectionMeta.kt

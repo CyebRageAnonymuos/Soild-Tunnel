@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Framework Material theme (no AppCompat/Material Components dependency needed);
+         the real UI is drawn by Jetpack Compose. -->
+    <style name="Theme.SoildTunnel" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/soildtunnel_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

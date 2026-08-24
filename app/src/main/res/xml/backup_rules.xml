@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SECURITY: android:allowBackup is already false, so backups are disabled
+  entirely. These rules are defense-in-depth: even if a future manifest change
+  (or an OEM backup quirk) re-enabled backups, nothing from this app would be
+  exported. The DataStore holds the user's manual endpoints and scan ranges —
+  on a hostile network that is sensitive metadata and must never leave the
+  device via cloud/adb backup.
+-->
+<full-backup-content>
+    <exclude domain="file" path="." />
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="." />
+</full-backup-content>

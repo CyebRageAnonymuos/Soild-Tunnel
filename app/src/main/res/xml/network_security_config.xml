@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SECURITY: deny cleartext HTTP for the entire app. The only plain-HTTP use in
+  the codebase is the geolocation probe (NetProbe), which deliberately uses raw
+  sockets (exempt from this policy by design) and carries no user data — see
+  docs/SECURITY_AUDIT.md. This config is defense-in-depth: it guarantees that
+  no third-party library or future HttpURLConnection/OkHttp code can silently
+  send cleartext traffic.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
