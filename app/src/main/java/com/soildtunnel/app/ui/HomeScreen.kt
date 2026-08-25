@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.soildtunnel.app.R
 import com.soildtunnel.app.core.IpEndpoint
+import com.soildtunnel.app.core.NetProbe
 import com.soildtunnel.app.core.ServerCatalog
 import com.soildtunnel.app.core.ServerPinger
 import com.soildtunnel.app.model.ConnectionProfile
@@ -380,8 +381,21 @@ private fun ServerSelectorPill(
     onClick: () -> Unit,
 ) {
     val selected = ServerCatalog.selectedIn(profile)
-    val name = selected?.name ?: stringResource(R.string.endpoint_range_custom_short)
     val isAuto = selected?.id == ServerCatalog.AUTO_ID
+
+    // Prefer the country the last live probe ACTUALLY landed on (Cloudflare
+    // anycast reroutes all the time); fall back to the static catalog label.
+    val results by ServerPinger.state.collectAsState()
+    val result = selected?.let { results[it.id] } ?: ServerPinger.Result()
+    val name = when {
+        selected == null -> stringResource(R.string.endpoint_range_custom_short)
+        result.countryName != null -> result.countryName
+        else -> selected.name
+    }
+    val flag =
+        if (selected != null && result.countryName != null) NetProbe.flagEmoji(result.countryCode)
+        else ""
+
     val alpha = if (enabled) 1f else 0.55f
     val shape = RoundedCornerShape(16.dp)
 
@@ -405,6 +419,9 @@ private fun ServerSelectorPill(
             color = CardTextDim,
         )
         Spacer(Modifier.width(2.dp))
+        if (flag.isNotEmpty()) {
+            Text(text = flag, fontSize = 13.sp)
+        }
         Text(
             text = name,
             fontFamily = FontFamily.Monospace,

@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.soildtunnel.app.R
+import com.soildtunnel.app.core.NetProbe
 import com.soildtunnel.app.core.ServerCatalog
 import com.soildtunnel.app.core.ServerNode
 import com.soildtunnel.app.core.ServerPinger
@@ -158,6 +159,20 @@ private fun ServerRow(
     )
     val isAuto = node.id == ServerCatalog.AUTO_ID
 
+    // Live detection: whatever datacenter the last probe ACTUALLY landed on,
+    // straight from Cloudflare's own trace. Static label is the fallback.
+    val results by ServerPinger.state.collectAsState()
+    val result = results[node.id] ?: ServerPinger.Result()
+    val liveName = result.countryName
+    val flag = if (liveName != null) NetProbe.flagEmoji(result.countryCode) else ""
+    val title = if (!isAuto && liveName != null) liveName else node.name
+    // The measured colo code is more truthful than the static catalog code.
+    val codeLabel = when {
+        isAuto -> node.code
+        result.colo != null -> result.colo
+        else -> node.code
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -172,8 +187,15 @@ private fun ServerRow(
 
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (flag.isNotEmpty()) {
+                    Text(
+                        text = flag,
+                        fontSize = 13.sp,
+                    )
+                    Spacer(Modifier.width(6.dp))
+                }
                 Text(
-                    text = node.name,
+                    text = title,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
@@ -183,7 +205,7 @@ private fun ServerRow(
                 if (!isAuto) {
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = node.code,
+                        text = codeLabel,
                         fontFamily = FontFamily.Monospace,
                         fontSize = 10.sp,
                         color = CardTextDim,
