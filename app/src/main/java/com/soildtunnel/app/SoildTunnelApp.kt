@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.Log
 import com.soildtunnel.app.core.DiagnosticsLog
 import com.soildtunnel.app.core.ServerPinger
+import com.soildtunnel.app.core.UpdateChecker
 import java.io.File
 
 class SoildTunnelApp : Application() {
@@ -17,6 +18,7 @@ class SoildTunnelApp : Application() {
         // startup (and any crash) is written to disk and survives process death.
         DiagnosticsLog.init(File(filesDir, "diagnostics.log"))
         ServerPinger.init(this)
+        UpdateChecker.init(this)
         installCrashHandler()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
