@@ -262,4 +262,18 @@
     <string name="upstream_help">Dials out through a proxy already running on this phone. socks5://host:port carries every protocol; http://host:port only carries MASQUE over HTTP/2, which is switched on for you. Credentials may be included as user:pass@host:port and are passed to the engine privately, never on its command line. Leave empty to connect directly.</string>
     <string name="reprovision_title">Replace a refused identity</string>
     <string name="reprovision_desc">If Cloudflare stops accepting the saved device identity, register a fresh one automatically instead of holding a tunnel that connects but carries no traffic.</string>
+
+    <!-- Control Room console -->
+    <string name="console_label">Telemetry</string>
+
+    <!-- Server picker -->
+    <string name="server_title">Server</string>
+    <string name="server_pick_title">Select server</string>
+    <string name="server_pick_subtitle">Live latency measured from this device. Tap a node to pin it.</string>
+    <string name="server_auto_desc">Scan every built-in edge range, keep the fastest live gateway</string>
+    <string name="server_selected">Selected</string>
+    <string name="server_ping_refresh">Re-measure latency</string>
+    <string name="server_ping_ms">%1$d ms</string>
+    <string name="ping_measuring_short">···</string>
+    <string name="endpoint_range_custom_short">Custom</string>
 </resources>

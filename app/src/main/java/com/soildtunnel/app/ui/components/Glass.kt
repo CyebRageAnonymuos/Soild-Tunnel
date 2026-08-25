@@ -4,41 +4,80 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.soildtunnel.app.ui.theme.EdgeNeon
+import com.soildtunnel.app.ui.theme.EdgeNeonBright
 import com.soildtunnel.app.ui.theme.GlassEdge
 import com.soildtunnel.app.ui.theme.GlassEdgeBright
 import com.soildtunnel.app.ui.theme.GlassFillBottom
 import com.soildtunnel.app.ui.theme.GlassFillTop
 import com.soildtunnel.app.ui.theme.GlassSheenTop
+import com.soildtunnel.app.ui.theme.NeonCyan
+import com.soildtunnel.app.ui.theme.PanelBottom
+import com.soildtunnel.app.ui.theme.PanelTop
 
-/**
- * The liquid glass system (1.3).
- *
- * Every "pane" in the app is built from the same three layers, so the UI reads
- * as one material instead of a pile of surfaces:
- *
- * 1. FILL   — a translucent white vertical gradient (frosted pane body);
- * 2. SHEEN  — a stop-based specular streak across the top edge, which is what
- * sells the "glass" illusion (bright rim of light at y=0, gone by
- * ~30% height; stop-based, so it scales to any surface size);
- * 3. RIM    — a hairline white border catching the light around the edge.
- *
- * Performance contract: pure static drawing. No blur passes, no RenderEffect,
- * no animation inside the material itself — the previous animated aurora
- * background taught us that full-screen continuous redraws eat the frame budget
- * on mid-range devices. Glass here costs two gradient fills + one border per
- * surface and never invalidates on its own.
- */
+// ---------------------------------------------------------------------------
+// CONTROL ROOM NEON material system.
+//
+// Two surface recipes, one visual language:
+//
+//  [neonPanel]  — the console panel: translucent dark navy fill, a hairline
+//                 phosphor-cyan edge and a faint top sheen. Every card in the
+//                 app sits on this.
+//  [glassPane]  — the floating chip: translucent white fill + sheen + white
+//                 hairline, for small round controls (menu buttons, badges).
+//
+// Performance contract (unchanged since the liquid-glass rewrite): pure static
+// drawing — two gradient fills + one border per surface, no blur passes, no
+// RenderEffect, nothing that invalidates on its own.
+// ---------------------------------------------------------------------------
 
-/** Glass fill for a surface sitting directly on the aurora backdrop. */
+/** The console panel: dark translucent body + hairline neon edge. */
+fun Modifier.neonPanel(
+    shape: Shape,
+    edge: Color = EdgeNeon,
+): Modifier = this
+    .background(
+        brush = Brush.verticalGradient(listOf(PanelTop, PanelBottom)),
+        shape = shape,
+    )
+    .background(
+        // Stop-based sheen across the top edge, gone by ~30% height.
+        brush = Brush.verticalGradient(
+            colorStops = arrayOf(
+                0.00f to GlassSheenTop,
+                0.30f to Color.Transparent,
+            ),
+        ),
+        shape = shape,
+    )
+    .border(1.dp, edge, shape)
+
+/** Legacy glass pane (floating chips). Kept for the round top-bar controls. */
 fun Modifier.glassPane(
     shape: Shape,
     brightRim: Boolean = false,
@@ -48,7 +87,6 @@ fun Modifier.glassPane(
         shape = shape,
     )
     .background(
-        // Stop-based sheen: 100% at the top edge, fully transparent by 32%.
         brush = Brush.verticalGradient(
             colorStops = arrayOf(
                 0.00f to GlassSheenTop,
@@ -59,7 +97,23 @@ fun Modifier.glassPane(
     )
     .border(1.dp, if (brightRim) GlassEdgeBright else GlassEdge, shape)
 
-/** A finished glass panel with rounded corners and standard inner padding. */
+/** A finished neon panel with rounded corners and standard inner padding. */
+@Composable
+fun NeonPanel(
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(20.dp),
+    contentPadding: Dp = 16.dp,
+    edge: Color = EdgeNeon,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .neonPanel(shape, edge)
+            .padding(contentPadding),
+        content = content,
+    )
+}
+
 @Composable
 fun GlassPanel(
     modifier: Modifier = Modifier,
@@ -67,14 +121,84 @@ fun GlassPanel(
     contentPadding: Dp = 16.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .glassPane(shape)
-            .padding(contentPadding),
-        content = content,
-    )
+    NeonPanel(modifier = modifier, shape = shape, contentPadding = contentPadding, content = content)
 }
 
-/** Small circular glass chip used behind standalone icons (top-bar buttons). */
-fun Modifier.glassChip(): Modifier = this
-    .glassPane(RoundedCornerShape(50), brightRim = true)
+/** Small circular chip used behind standalone icons (top-bar buttons). */
+fun Modifier.glassChip(): Modifier = this.glassPane(RoundedCornerShape(50), brightRim = true)
+
+// ------------------------------------------------------------- decorations
+
+/**
+ * Four corner brackets drawn just inside the bounds — the classic targeting /
+ * HUD frame. Pure static draw; used on the power orb stage and hero cards.
+ */
+fun Modifier.neonBrackets(
+    color: Color,
+    length: Dp = 14.dp,
+    inset: Dp = 3.dp,
+    strokeWidth: Dp = 2.dp,
+): Modifier = drawWithCache {
+    val len = length.toPx()
+    val gap = inset.toPx()
+    val w = strokeWidth.toPx()
+    onDrawBehind {
+        val right = size.width - gap
+        val bottom = size.height - gap
+        // top-left
+        drawLine(color, Offset(gap, gap), Offset(gap + len, gap), strokeWidth = w, cap = StrokeCap.Round)
+        drawLine(color, Offset(gap, gap), Offset(gap, gap + len), strokeWidth = w, cap = StrokeCap.Round)
+        // top-right
+        drawLine(color, Offset(right, gap), Offset(right - len, gap), strokeWidth = w, cap = StrokeCap.Round)
+        drawLine(color, Offset(right, gap), Offset(right, gap + len), strokeWidth = w, cap = StrokeCap.Round)
+        // bottom-left
+        drawLine(color, Offset(gap, bottom), Offset(gap + len, bottom), strokeWidth = w, cap = StrokeCap.Round)
+        drawLine(color, Offset(gap, bottom), Offset(gap, bottom - len), strokeWidth = w, cap = StrokeCap.Round)
+        // bottom-right
+        drawLine(color, Offset(right, bottom), Offset(right - len, bottom), strokeWidth = w, cap = StrokeCap.Round)
+        drawLine(color, Offset(right, bottom), Offset(right, bottom - len), strokeWidth = w, cap = StrokeCap.Round)
+    }
+}
+
+/** Status LED with a soft phosphor halo. */
+@Composable
+fun LedDot(color: Color, size: Dp = 8.dp, glowing: Boolean = true) {
+    androidx.compose.foundation.Canvas(modifier = Modifier.size(size)) {
+        if (glowing) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    listOf(color.copy(alpha = 0.55f), Color.Transparent),
+                    radius = this.size.minDimension / 2f,
+                ),
+            )
+        }
+        drawCircle(color, radius = this.size.minDimension * 0.28f)
+    }
+}
+
+/** Uppercase console section header: tick bar + letterspaced mono label. */
+@Composable
+fun NeonSectionLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+    accent: Color = NeonCyan,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        Spacer(
+            Modifier
+                .width(3.dp)
+                .height(12.dp)
+                .background(accent, RoundedCornerShape(2.dp)),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.6.sp,
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}

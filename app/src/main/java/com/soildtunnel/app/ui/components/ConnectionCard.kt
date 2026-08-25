@@ -44,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -74,57 +73,38 @@ import com.soildtunnel.app.R
 import com.soildtunnel.app.core.EngineMeta
 import com.soildtunnel.app.core.HevTunnel
 import com.soildtunnel.app.core.IpEndpoint
-import com.soildtunnel.app.core.NetProbe
 import com.soildtunnel.app.core.PingMonitor
 import com.soildtunnel.app.core.ShareBridge
-import com.soildtunnel.app.ui.theme.SoildTunnelGlowCyan
-import com.soildtunnel.app.ui.theme.SoildTunnelMint
 import com.soildtunnel.app.ui.theme.CardSubSurface
-import com.soildtunnel.app.ui.theme.CardSurfaceBottom
-import com.soildtunnel.app.ui.theme.CardSurfaceTop
 import com.soildtunnel.app.ui.theme.CardTextDim
 import com.soildtunnel.app.ui.theme.CardTextMuted
 import com.soildtunnel.app.ui.theme.CardTextPrimary
+import com.soildtunnel.app.ui.theme.NeonCyan
+import com.soildtunnel.app.ui.theme.NeonMint
+import com.soildtunnel.app.ui.theme.NeonRed
+import com.soildtunnel.app.ui.theme.NeonViolet
 
 /**
- * THE bottom block of the home screen (new in ).
+ * THE telemetry console — bottom block of the home screen.
  *
- * Originally the area under the power button was four separate floating
- * surfaces - status text, traffic meter, IP badge and the protocol/endpoint/
- * latency row - each with its own colour, radius and padding. They read as
- * clutter on a phone screen and nothing tied them together.
+ * One cohesive control-room console instead of a pile of floating surfaces,
+ * with a fixed vertical hierarchy:
  *
- * This is one cohesive glassmorphic card instead, with a single surface colour
- * system and a fixed vertical hierarchy:
+ *  0. header        ("TELEMETRY" label + status LED)
+ *  1. status        (large state word in the mode accent)
+ *  2. session timer ("CONNECTED FOR" + HH:MM:SS in a mono face)
+ *  3. server IP pill(label + country flag + address)
+ *  4. speed strip   (live down/up rate and session totals)
+ *  5. meta strip    (Protocol | Endpoint | Latency, three equal columns)
  *
- * 1. connection status  (large, mint, with a quiet "tap to disconnect" line)
- * 2. session timer      ("Connected for" + HH:MM:SS in a mono/digital face)
- * 3. server IP pill     (label + country flag + address)
- * 4. speed strip        (live down/up rate and session totals)
- * 5. protocol strip     (Protocol | Endpoint | Latency, three equal columns)
- *
- * Nothing floats outside the block: every sub-section is a child container of
- * the same card, drawn from the same palette.
- *
- * COLOURS ARE DELIBERATELY NOT FROM MaterialTheme. The app runs Material You
- * (`dynamicDarkColorScheme`) on Android 12+, which repaints every themed
- * surface from the user's wallpaper - a purple or brown wallpaper turned this
- * card into something that no longer looked like SoildTunnel. The card is pinned to
- * the brand palette instead: deep navy background (#0A0E1A), mint accent
- * (#3EDBB0), one slate glass surface for everything inside it.
- *
- * CONNECTED-STATE ANIMATION. While the tunnel is up, the card edge carries a
- * light show: segments of mint and cyan travel around the border and breathe in
- * length, width and intensity like an audio equaliser, so the card feels alive
- * rather than blinking. Implementation notes, because this app has a history of
- * animations eating the frame budget (see AmbientBackground):
- *  - it is ONE closed path, measured once per size change and cached;
- *  - the animation state is read inside the draw lambda, so a frame costs a
- * redraw of the border only - never a recomposition of the card;
- *  - the infinite transition is composed ONLY while connected, so a disconnected
- * app subscribes to no frame callbacks at all;
- *  - each band is three strokes (halo, mid, core) in additive blend, which fakes
- * a soft bloom without a blur pass or a second layer.
+ * While connected, the console edge carries the travelling equaliser light
+ * show (cyan → mint → violet bands). Implementation notes, because this app
+ * has a history of animations eating the frame budget (see AmbientBackground):
+ *  - ONE closed path, measured once per size change and cached;
+ *  - animation state is read inside the draw lambda, so a frame costs a border
+ *    redraw only — never a recomposition of the card;
+ *  - the infinite transition is composed ONLY while connected;
+ *  - each band is three strokes (halo, mid, core) in additive blend.
  */
 @Composable
 fun ConnectionCard(
@@ -139,7 +119,7 @@ fun ConnectionCard(
 ) {
     val accent = when {
         error -> ERROR_ACCENT
-        connected -> SoildTunnelMint
+        connected -> NeonMint
         else -> IDLE_ACCENT
     }
 
@@ -150,32 +130,56 @@ fun ConnectionCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            // clip = false so the glow may bloom past the card edge.
-            .shadow(
-                elevation = 26.dp,
-                shape = CARD_SHAPE,
-                clip = false,
-                ambientColor = Color.Black,
-                spotColor = Color.Black,
-            )
-            .background(
-                brush = Brush.verticalGradient(listOf(CardSurfaceTop, CardSurfaceBottom)),
-                shape = CARD_SHAPE,
-            )
+            .neonPanel(CARD_SHAPE, edge = accent.copy(alpha = 0.28f))
+            .drawWithCache {
+                // Static HUD brackets pinned to the console corners.
+                val bracket = accent.copy(alpha = if (connected) 0.9f else 0.5f)
+                onDrawBehind { drawCornerBrackets(bracket) }
+            }
             .glassEdge(accent = accent, pulse = pulse)
-            .padding(horizontal = 18.dp, vertical = 20.dp),
+            .padding(horizontal = 18.dp, vertical = 16.dp),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            ConsoleHeader(connected = connected, error = error)
             StatusBlock(title = statusTitle, caption = statusCaption, accent = accent)
             TimerBlock(connectedSince = connectedSince, connected = connected)
             ServerIpPill(connected = connected, ipInfo = ipInfo, ipLoading = ipLoading)
             SpeedStrip(connectedSince = connectedSince, connected = connected)
             ProtocolStrip(connected = connected)
         }
+    }
+}
+
+// --------------------------------------------------------------- 0. header
+
+@Composable
+private fun ConsoleHeader(connected: Boolean, error: Boolean) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LedDot(
+            color = when {
+                error -> NeonRed
+                connected -> NeonMint
+                else -> NeonCyan
+            },
+            glowing = true,
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = stringResource(R.string.console_label),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp,
+            ),
+            color = CardTextDim,
+        )
     }
 }
 
@@ -237,19 +241,27 @@ private fun TimerBlock(connectedSince: Long?, connected: Boolean) {
         elapsed % 60,
     )
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = CardSubSurface, shape = SUB_SHAPE)
+            .subEdge(SUB_SHAPE)
+            .padding(vertical = 10.dp),
+    ) {
         Text(
             text = stringResource(R.string.connected_for),
-            fontSize = 11.sp,
-            letterSpacing = 1.2.sp,
-            color = CardTextMuted,
+            fontSize = 10.sp,
+            letterSpacing = 1.6.sp,
+            fontFamily = FontFamily.Monospace,
+            color = CardTextDim,
         )
         Spacer(Modifier.height(2.dp))
         Text(
             text = text,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
-            fontSize = 38.sp,
+            fontSize = 34.sp,
             letterSpacing = 1.5.sp,
             color = if (connected) CardTextPrimary else CardTextDim,
         )
@@ -272,9 +284,9 @@ private fun ServerIpPill(connected: Boolean, ipInfo: IpEndpoint?, ipLoading: Boo
 
     Row(
         modifier = Modifier
-            .background(color = CardSubSurface, shape = CircleShape)
-            .subEdge(CircleShape)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .background(color = CardSubSurface, shape = SUB_SHAPE)
+            .subEdge(SUB_SHAPE)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -315,7 +327,7 @@ private fun SpeedStrip(connectedSince: Long?, connected: Boolean) {
     ) {
         SpeedCell(
             icon = Icons.Rounded.ArrowDownward,
-            tint = SoildTunnelMint,
+            tint = NeonMint,
             label = stringResource(R.string.traffic_download),
             rate = stats.downRate,
             total = stats.downTotal,
@@ -324,7 +336,7 @@ private fun SpeedStrip(connectedSince: Long?, connected: Boolean) {
         CellDivider()
         SpeedCell(
             icon = Icons.Rounded.ArrowUpward,
-            tint = SoildTunnelGlowCyan,
+            tint = NeonCyan,
             label = stringResource(R.string.traffic_upload),
             rate = stats.upRate,
             total = stats.upTotal,
@@ -348,7 +360,7 @@ private fun SpeedCell(
         horizontalArrangement = Arrangement.Center,
     ) {
         Box(
-            modifier = Modifier.background(color = tint.copy(alpha = 0.14f), shape = CircleShape),
+            modifier = Modifier.background(color = tint.copy(alpha = 0.12f), shape = CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -429,10 +441,11 @@ private fun MetaCell(label: String, value: String, modifier: Modifier = Modifier
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = label,
-            fontSize = 10.sp,
-            letterSpacing = 0.6.sp,
-            color = CardTextMuted,
+            text = label.uppercase(),
+            fontSize = 9.sp,
+            letterSpacing = 1.2.sp,
+            fontFamily = FontFamily.Monospace,
+            color = CardTextDim,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
@@ -561,21 +574,22 @@ private class GlowBand(
     val span: Float,
     val harmonic: Int,
     val skew: Float,
+    /** 0f = cyan … 1f = violet; the core mint sits between. */
     val tint: Float,
 )
 
 private val GLOW_BANDS = listOf(
-    GlowBand(offset = 0.00f, span = 0.15f, harmonic = 2, skew = 0.00f, tint = 0.00f),
-    GlowBand(offset = 0.13f, span = 0.08f, harmonic = 3, skew = 0.34f, tint = 0.45f),
+    GlowBand(offset = 0.00f, span = 0.15f, harmonic = 2, skew = 0.00f, tint = 0.35f),
+    GlowBand(offset = 0.13f, span = 0.08f, harmonic = 3, skew = 0.34f, tint = 0.70f),
     GlowBand(offset = 0.28f, span = 0.13f, harmonic = 5, skew = 0.11f, tint = 0.20f),
-    GlowBand(offset = 0.43f, span = 0.06f, harmonic = 7, skew = 0.61f, tint = 0.85f),
-    GlowBand(offset = 0.56f, span = 0.14f, harmonic = 3, skew = 0.79f, tint = 0.35f),
-    GlowBand(offset = 0.70f, span = 0.09f, harmonic = 5, skew = 0.24f, tint = 0.65f),
-    GlowBand(offset = 0.85f, span = 0.12f, harmonic = 2, skew = 0.50f, tint = 1.00f),
+    GlowBand(offset = 0.43f, span = 0.06f, harmonic = 7, skew = 0.61f, tint = 0.95f),
+    GlowBand(offset = 0.56f, span = 0.14f, harmonic = 3, skew = 0.79f, tint = 0.45f),
+    GlowBand(offset = 0.70f, span = 0.09f, harmonic = 5, skew = 0.24f, tint = 0.80f),
+    GlowBand(offset = 0.85f, span = 0.12f, harmonic = 2, skew = 0.50f, tint = 0.05f),
 )
 
 /**
- * The card edge: a soft inner glow, a hairline teal border, and - while
+ * The console edge: a soft inner glow, a hairline neon border, and - while
  * connected - the travelling equaliser light.
  */
 private fun Modifier.glassEdge(accent: Color, pulse: GlowPulse?): Modifier = drawWithCache {
@@ -603,7 +617,7 @@ private fun Modifier.glassEdge(accent: Color, pulse: GlowPulse?): Modifier = dra
         drawPath(outline, brush = innerGlow)
         drawPath(
             outline,
-            color = accent.copy(alpha = if (pulse == null) 0.10f else 0.16f),
+            color = accent.copy(alpha = if (pulse == null) 0.22f else 0.30f),
             style = Stroke(hairline),
         )
         if (pulse == null) return@onDrawBehind
@@ -614,7 +628,13 @@ private fun Modifier.glassEdge(accent: Color, pulse: GlowPulse?): Modifier = dra
             val amp = 0.5f + 0.5f * sin(TWO_PI * (spec.harmonic * phase + spec.skew))
             val length = perimeter * spec.span * (0.30f + 0.95f * amp)
             val start = ((phase + spec.offset) % 1f) * perimeter
-            val colour = lerp(SoildTunnelMint, SoildTunnelGlowCyan, (spec.tint * 0.6f + amp * 0.4f))
+            // Cyan → mint → violet sweep across the bands.
+            val colour = when {
+                spec.tint < 0.5f ->
+                    lerp(NeonCyan, NeonMint, (spec.tint / 0.5f).coerceIn(0f, 1f))
+                else ->
+                    lerp(NeonMint, NeonViolet, ((spec.tint - 0.5f) / 0.5f).coerceIn(0f, 1f))
+            }
             val width = hairline * (1.1f + 2.3f * amp)
             val alpha = (0.20f + 0.80f * amp) * breath
 
@@ -650,7 +670,31 @@ private fun PathMeasure.appendSegment(dst: Path, start: Float, length: Float, pe
     }
 }
 
-/** The 1px low-opacity teal rim shared by every sub-container in the card. */
+/**
+ * Four static HUD brackets just inside the console corners. Drawn inside the
+ * same drawWithCache as [glassEdge]'s host box, sharing its accent.
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCornerBrackets(color: Color) {
+    val len = 16.dp.toPx()
+    val gap = 5.dp.toPx()
+    val w = 2.dp.toPx()
+    val right = size.width - gap
+    val bottom = size.height - gap
+    // top-left
+    drawLine(color, Offset(gap, gap), Offset(gap + len, gap), strokeWidth = w, cap = StrokeCap.Round)
+    drawLine(color, Offset(gap, gap), Offset(gap, gap + len), strokeWidth = w, cap = StrokeCap.Round)
+    // top-right
+    drawLine(color, Offset(right, gap), Offset(right - len, gap), strokeWidth = w, cap = StrokeCap.Round)
+    drawLine(color, Offset(right, gap), Offset(right, gap + len), strokeWidth = w, cap = StrokeCap.Round)
+    // bottom-left
+    drawLine(color, Offset(gap, bottom), Offset(gap + len, bottom), strokeWidth = w, cap = StrokeCap.Round)
+    drawLine(color, Offset(gap, bottom), Offset(gap, bottom - len), strokeWidth = w, cap = StrokeCap.Round)
+    // bottom-right
+    drawLine(color, Offset(right, bottom), Offset(right - len, bottom), strokeWidth = w, cap = StrokeCap.Round)
+    drawLine(color, Offset(right, bottom), Offset(right, bottom - len), strokeWidth = w, cap = StrokeCap.Round)
+}
+
+/** The 1px low-opacity neon rim shared by every sub-container in the console. */
 private fun Modifier.subEdge(shape: CornerBasedShape): Modifier = drawWithCache {
     val hairline = 1.dp.toPx()
     val inset = hairline / 2f
@@ -663,7 +707,9 @@ private fun Modifier.subEdge(shape: CornerBasedShape): Modifier = drawWithCache 
             ),
         )
     }
-    onDrawBehind { drawPath(outline, color = SUB_BORDER, style = Stroke(hairline)) }
+    onDrawBehind {
+        drawPath(outline, color = SUB_BORDER, style = Stroke(hairline))
+    }
 }
 
 // ---------------------------------------------------------------- helpers
@@ -679,13 +725,13 @@ private fun formatBytes(v: Long): String {
 
 private fun formatRate(v: Long): String = formatBytes(v) + "/s"
 
-private val CARD_RADIUS = 26.dp
+private val CARD_RADIUS = 24.dp
 private val CARD_SHAPE = RoundedCornerShape(CARD_RADIUS)
-private val SUB_SHAPE = RoundedCornerShape(18.dp)
-private val SUB_BORDER = Color(0x1F3EDBB0)
+private val SUB_SHAPE = RoundedCornerShape(14.dp)
+private val SUB_BORDER = Color(0x2435E0FF)
 private val DIVIDER = Color(0x1FFFFFFF)
-private val IDLE_ACCENT = Color(0xFF4C8DFF)
-private val ERROR_ACCENT = Color(0xFFFF5C7A)
+private val IDLE_ACCENT = NeonCyan
+private val ERROR_ACCENT = NeonRed
 private const val GLOW_TRAVEL_MS = 5_200
 private const val LATENCY_REFRESH_MS = 4_000L
 private const val TWO_PI = 6.2831855f

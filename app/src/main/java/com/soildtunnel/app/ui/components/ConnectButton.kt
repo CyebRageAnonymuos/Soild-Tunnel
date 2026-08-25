@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Autorenew
-import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -37,24 +36,28 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import kotlin.math.cos
+import kotlin.math.sin
 
 enum class ButtonMode { IDLE, BUSY, CONNECTED, ERROR }
 
 /**
- * The centrepiece action, rebuilt for the liquid-glass system (1.3).
+ * The centrepiece action — CONTROL ROOM NEON "reactor core".
  *
- * Three stacked layers, back to front:
+ * Layers, back to front:
  *
- * 1. HALO       - a soft radial bloom of the mode colour behind everything;
- * 2. GLASS RING - a floating translucent ring (glassPane recipe: fill + sheen
- * + bright rim), which is what makes the orb read as glass;
- * 3. DISC       - the tappable core: an accent-tinted pool holding the power
- * glyph, plus a travelling arc while connecting.
+ * 1. HALO        — a soft radial bloom of the mode colour behind everything;
+ * 2. RADAR TICKS — a static ring of 60 graduation ticks (every 5th one longer
+ *                  and brighter), the mission-console dial around the core;
+ * 3. TELEMETRY   — a thin dashed inner ring; while connecting a bright arc
+ *                  travels it, while connected the whole stage breathes;
+ * 4. DISC        — the tappable core: dark pool, neon rim, power glyph.
  *
- * PERFORMANCE CONTRACT (this app has history - see AmbientBackground): infinite
- * animations live inside [OrbHalo], [BusyArc] and [SpinningGlyph], each of which
- * is only COMPOSED while its state actually runs them. An idle or errored orb
- * subscribes to zero frame callbacks; a connected one breathes the halo only.
+ * PERFORMANCE CONTRACT (this app has history — see AmbientBackground): infinite
+ * animations live inside [CoreHalo], [BusyArc] and [SpinningGlyph], each of
+ * which is only COMPOSED while its state actually runs them. An idle or
+ * errored core subscribes to zero frame callbacks; a connected one breathes
+ * the halo only. Ticks and brackets are static draws that never invalidate.
  */
 @Composable
 fun ConnectButton(
@@ -63,10 +66,10 @@ fun ConnectButton(
     modifier: Modifier = Modifier,
 ) {
     val accent = when (mode) {
-        ButtonMode.IDLE -> Color(0xFF5B9BFF)
-        ButtonMode.BUSY -> Color(0xFF5B9BFF)
-        ButtonMode.CONNECTED -> Color(0xFF32E0C4)
-        ButtonMode.ERROR -> Color(0xFFFF5C7A)
+        ButtonMode.IDLE -> NeonTokens.idle
+        ButtonMode.BUSY -> NeonTokens.busy
+        ButtonMode.CONNECTED -> NeonTokens.connected
+        ButtonMode.ERROR -> NeonTokens.error
     }
     val animatedAccent by animateColorAsState(accent, tween(600), label = "accent")
 
@@ -84,19 +87,33 @@ fun ConnectButton(
             .size(HALO)
             .scale(pressScale),
     ) {
-        OrbHalo(accent = animatedAccent, pulsing = mode == ButtonMode.CONNECTED)
+        CoreHalo(accent = animatedAccent, pulsing = mode == ButtonMode.CONNECTED)
 
-        // The floating glass ring.
+        // Static radar tick ring — drawn once, never invalidates.
+        Canvas(modifier = Modifier.size(TICK_RING)) { drawTickRing(animatedAccent) }
+
+        // Telemetry ring: dashed base + travelling arc while busy.
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(RING)
-                .glassChip(),
+            modifier = Modifier.size(RING),
         ) {
+            Canvas(modifier = Modifier.size(RING)) { drawDashedRing() }
             if (mode == ButtonMode.BUSY) {
                 BusyArc(accent = animatedAccent)
             }
         }
+
+        // Corner targeting brackets around the whole stage.
+        Box(
+            modifier = Modifier
+                .size(BRACKETS)
+                .neonBrackets(
+                    color = animatedAccent.copy(alpha = if (mode == ButtonMode.IDLE) 0.45f else 0.8f),
+                    length = 18.dp,
+                    inset = 2.dp,
+                    strokeWidth = 2.dp,
+                ),
+        )
 
         // The tappable disc.
         Box(
@@ -104,12 +121,16 @@ fun ConnectButton(
             modifier = Modifier
                 .size(DISC)
                 .background(
-                    brush = Brush.verticalGradient(
-                        listOf(animatedAccent.copy(alpha = 0.32f), DISC_BASE),
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            animatedAccent.copy(alpha = 0.30f),
+                            DISC_BASE,
+                        ),
                     ),
                     shape = CircleShape,
                 )
-                .border(1.dp, animatedAccent.copy(alpha = 0.35f), CircleShape)
+                .border(1.5.dp, animatedAccent.copy(alpha = 0.55f), CircleShape)
+                .border(6.dp, animatedAccent.copy(alpha = 0.08f), CircleShape)
                 .clickable(
                     interactionSource = interaction,
                     indication = null,
@@ -117,8 +138,7 @@ fun ConnectButton(
                 ),
         ) {
             val tint = if (mode == ButtonMode.CONNECTED) DEEP_TEXT else animatedAccent
-            val glyph = when (mode) {
-                ButtonMode.CONNECTED -> Icons.Rounded.Bolt
+            val glyph: ImageVector = when (mode) {
                 ButtonMode.BUSY -> Icons.Rounded.Autorenew
                 else -> Icons.Rounded.PowerSettingsNew
             }
@@ -139,12 +159,12 @@ fun ConnectButton(
 // ------------------------------------------------------------------ layers
 
 @Composable
-private fun OrbHalo(accent: Color, pulsing: Boolean) {
+private fun CoreHalo(accent: Color, pulsing: Boolean) {
     if (!pulsing) {
         Canvas(modifier = Modifier.size(HALO)) { drawHalo(accent, 1f) }
         return
     }
-    val breath = rememberInfiniteTransition(label = "orbHalo").animateFloat(
+    val breath = rememberInfiniteTransition(label = "coreHalo").animateFloat(
         initialValue = 0.92f,
         targetValue = 1.08f,
         animationSpec = infiniteRepeatable(
@@ -168,29 +188,72 @@ private fun DrawScope.drawHalo(accent: Color, scale: Float) {
     )
 }
 
-/** Travelling progress arc hugging the inside of the glass ring. */
+/** 60 graduations; every 5th is a long bright major tick. Static draw. */
+private fun DrawScope.drawTickRing(accent: Color) {
+    val stroke = 1.5.dp.toPx()
+    val outer = size.minDimension / 2f
+    val center = Offset(size.width / 2f, size.height / 2f)
+    val minorInner = outer - 7.dp.toPx()
+    val majorInner = outer - 13.dp.toPx()
+    for (i in 0 until TICK_COUNT) {
+        val angle = Math.PI * 2.0 * i / TICK_COUNT - Math.PI / 2.0
+        val dx = cos(angle).toFloat()
+        val dy = sin(angle).toFloat()
+        val major = i % MAJOR_EVERY == 0
+        val inner = if (major) majorInner else minorInner
+        drawLine(
+            color = if (major) accent.copy(alpha = 0.55f) else Color.White.copy(alpha = 0.14f),
+            start = Offset(center.x + dx * inner, center.y + dy * inner),
+            end = Offset(center.x + dx * outer, center.y + dy * outer),
+            strokeWidth = if (major) stroke * 1.4f else stroke,
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+/** Thin dashed circle hugging the inside of the tick ring. Static draw. */
+private fun DrawScope.drawDashedRing() {
+    val sweep = 360f / DASH_COUNT
+    val style = Stroke(width = 1.5.dp.toPx(), cap = StrokeCap.Round)
+    val dash = sweep * 0.45f
+    for (i in 0 until DASH_COUNT) {
+        drawArc(
+            color = Color.White.copy(alpha = 0.16f),
+            startAngle = i * sweep,
+            sweepAngle = dash,
+            useCenter = false,
+            style = style,
+        )
+    }
+}
+
+/** Travelling progress arc hugging the telemetry ring. */
 @Composable
 private fun BusyArc(accent: Color) {
-    val rotation = rememberInfiniteTransition(label = "orbBusy").animateFloat(
+    val rotation = rememberInfiniteTransition(label = "coreBusy").animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(tween(1_100, easing = LinearEasing)),
         label = "rotation",
     )
-    Canvas(modifier = Modifier.size(RING - 10.dp).rotate(rotation.value)) {
+    Canvas(
+        modifier = Modifier
+            .size(RING)
+            .rotate(rotation.value),
+    ) {
         drawArc(
             color = accent,
             startAngle = -90f,
-            sweepAngle = 90f,
+            sweepAngle = 80f,
             useCenter = false,
-            style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round),
+            style = Stroke(width = 3.5.dp.toPx(), cap = StrokeCap.Round),
         )
     }
 }
 
 @Composable
 private fun SpinningGlyph(glyph: ImageVector, tint: Color) {
-    val rotation = rememberInfiniteTransition(label = "orbSpin").animateFloat(
+    val rotation = rememberInfiniteTransition(label = "coreSpin").animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(tween(1_400, easing = LinearEasing)),
@@ -208,9 +271,22 @@ private fun SpinningGlyph(glyph: ImageVector, tint: Color) {
 
 // ------------------------------------------------------------------ tokens
 
-private val HALO = 240.dp
-private val RING = 184.dp
-private val DISC = 148.dp
-private val GLYPH = 56.dp
-private val DISC_BASE = Color(0xFF0A0A10)
+/** Mode colours, centralised so HomeScreen and this file stay in sync. */
+private object NeonTokens {
+    val idle = Color(0xFF35E0FF)
+    val busy = Color(0xFF35E0FF)
+    val connected = Color(0xFF3DFFC8)
+    val error = Color(0xFFFF4D6F)
+}
+
+private val HALO = 250.dp
+private val TICK_RING = 206.dp
+private val RING = 178.dp
+private val BRACKETS = 236.dp
+private val DISC = 142.dp
+private val GLYPH = 54.dp
+private const val TICK_COUNT = 60
+private const val MAJOR_EVERY = 5
+private const val DASH_COUNT = 48
+private val DISC_BASE = Color(0xFF05070B)
 private val DEEP_TEXT = Color(0xFF062B24)
