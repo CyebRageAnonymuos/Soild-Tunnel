@@ -73,6 +73,7 @@ import com.soildtunnel.app.R
 import com.soildtunnel.app.core.EngineMeta
 import com.soildtunnel.app.core.HevTunnel
 import com.soildtunnel.app.core.IpEndpoint
+import com.soildtunnel.app.core.NetProbe
 import com.soildtunnel.app.core.PingMonitor
 import com.soildtunnel.app.core.ShareBridge
 import com.soildtunnel.app.ui.theme.CardSubSurface
