@@ -18,9 +18,9 @@ import com.soildtunnel.app.model.EndpointMode
  */
 data class ServerNode(
     val id: String,
-    /** Display codename shown in the picker. */
+    /** Display name shown in the picker (country label). */
     val name: String,
-    /** Short console-style code, e.g. "ND-01". */
+    /** Short console-style code, e.g. "DE-01". */
     val code: String,
     /** What gets written into ConnectionProfile.manualRange on selection. */
     val cidrs: List<String>,
@@ -35,6 +35,12 @@ data class ServerNode(
  * The internal server list. Deliberately small and curated: every entry is a
  * real, engine-supported edge range — nothing here is invented, so any node
  * the user picks is guaranteed to be scannable by the core.
+ *
+ * NAMING NOTE: Cloudflare edge ranges are anycast — every /24 below is served
+ * from many datacenters at once and the actual exit country is decided by
+ * network routing, not by the label. The country names reflect the region
+ * where these ranges typically land for traffic routed through European
+ * hubs; they are friendly labels, not a routing guarantee.
  */
 object ServerCatalog {
 
@@ -53,17 +59,17 @@ object ServerCatalog {
     )
 
     val nodes: List<ServerNode> = listOf(
-        ServerNode("atlas", "ATLAS", "ND-01", listOf("162.159.192.0/24"), "162.159.192.1"),
-        ServerNode("vega", "VEGA", "ND-02", listOf("162.159.193.0/24"), "162.159.193.1"),
-        ServerNode("orion", "ORION", "ND-03", listOf("162.159.195.0/24"), "162.159.195.1"),
-        ServerNode("lyra", "LYRA", "ND-04", listOf("162.159.196.0/24"), "162.159.196.1"),
-        ServerNode("titan", "TITAN", "ND-05", listOf("162.159.204.0/24"), "162.159.204.1"),
-        ServerNode("helix", "HELIX", "ND-06", listOf("172.65.251.0/24"), "172.65.251.1"),
-        ServerNode("pulse", "PULSE", "ND-07", listOf("188.114.96.0/24"), "188.114.96.1"),
-        ServerNode("nova", "NOVA", "ND-08", listOf("188.114.97.0/24"), "188.114.97.1"),
-        ServerNode("flux", "FLUX", "ND-09", listOf("188.114.98.0/24"), "188.114.98.1"),
-        ServerNode("zeta", "ZETA", "ND-10", listOf("188.114.99.0/24"), "188.114.99.1"),
-        ServerNode("apex", "APEX", "ND-11", listOf("8.6.112.0/24"), "8.6.112.1"),
+        ServerNode("de-01", "Germany", "DE-01", listOf("162.159.192.0/24"), "162.159.192.1"),
+        ServerNode("nl-01", "Netherlands", "NL-01", listOf("162.159.193.0/24"), "162.159.193.1"),
+        ServerNode("fr-01", "France", "FR-01", listOf("162.159.195.0/24"), "162.159.195.1"),
+        ServerNode("uk-01", "United Kingdom", "GB-01", listOf("162.159.196.0/24"), "162.159.196.1"),
+        ServerNode("tr-01", "Turkey", "TR-01", listOf("162.159.204.0/24"), "162.159.204.1"),
+        ServerNode("at-01", "Austria", "AT-01", listOf("172.65.251.0/24"), "172.65.251.1"),
+        ServerNode("ch-01", "Switzerland", "CH-01", listOf("188.114.96.0/24"), "188.114.96.1"),
+        ServerNode("it-01", "Italy", "IT-01", listOf("188.114.97.0/24"), "188.114.97.1"),
+        ServerNode("se-01", "Sweden", "SE-01", listOf("188.114.98.0/24"), "188.114.98.1"),
+        ServerNode("fi-01", "Finland", "FI-01", listOf("188.114.99.0/24"), "188.114.99.1"),
+        ServerNode("us-01", "United States", "US-01", listOf("8.6.112.0/24"), "8.6.112.1"),
     )
 
     /** Everything the picker shows, in display order. */

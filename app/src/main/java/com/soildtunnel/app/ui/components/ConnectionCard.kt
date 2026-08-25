@@ -132,11 +132,6 @@ fun ConnectionCard(
         modifier = modifier
             .fillMaxWidth()
             .neonPanel(CARD_SHAPE, edge = accent.copy(alpha = 0.28f))
-            .drawWithCache {
-                // Static HUD brackets pinned to the console corners.
-                val bracket = accent.copy(alpha = if (connected) 0.9f else 0.5f)
-                onDrawBehind { drawCornerBrackets(bracket) }
-            }
             .glassEdge(accent = accent, pulse = pulse)
             .padding(horizontal = 18.dp, vertical = 16.dp),
     ) {
@@ -669,30 +664,6 @@ private fun PathMeasure.appendSegment(dst: Path, start: Float, length: Float, pe
         getSegment(start, perimeter, dst, true)
         getSegment(0f, end - perimeter, dst, true)
     }
-}
-
-/**
- * Four static HUD brackets just inside the console corners. Drawn inside the
- * same drawWithCache as [glassEdge]'s host box, sharing its accent.
- */
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCornerBrackets(color: Color) {
-    val len = 16.dp.toPx()
-    val gap = 5.dp.toPx()
-    val w = 2.dp.toPx()
-    val right = size.width - gap
-    val bottom = size.height - gap
-    // top-left
-    drawLine(color, Offset(gap, gap), Offset(gap + len, gap), strokeWidth = w, cap = StrokeCap.Round)
-    drawLine(color, Offset(gap, gap), Offset(gap, gap + len), strokeWidth = w, cap = StrokeCap.Round)
-    // top-right
-    drawLine(color, Offset(right, gap), Offset(right - len, gap), strokeWidth = w, cap = StrokeCap.Round)
-    drawLine(color, Offset(right, gap), Offset(right, gap + len), strokeWidth = w, cap = StrokeCap.Round)
-    // bottom-left
-    drawLine(color, Offset(gap, bottom), Offset(gap + len, bottom), strokeWidth = w, cap = StrokeCap.Round)
-    drawLine(color, Offset(gap, bottom), Offset(gap, bottom - len), strokeWidth = w, cap = StrokeCap.Round)
-    // bottom-right
-    drawLine(color, Offset(right, bottom), Offset(right - len, bottom), strokeWidth = w, cap = StrokeCap.Round)
-    drawLine(color, Offset(right, bottom), Offset(right, bottom - len), strokeWidth = w, cap = StrokeCap.Round)
 }
 
 /** The 1px low-opacity neon rim shared by every sub-container in the console. */
