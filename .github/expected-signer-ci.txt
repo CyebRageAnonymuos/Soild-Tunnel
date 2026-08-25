@@ -1,0 +1,5 @@
+# SHA-256 of the CI certificate that signs this repository's APKs.
+# Recorded automatically. If this value ever changes, users cannot
+# install a new release over the one they already have, so the build
+# fails instead of publishing such an APK.
+1b805d5d531caa19a043bc085aa2059d5810cb8110559025a3657c5c1fa6f1bb
