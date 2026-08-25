@@ -163,6 +163,18 @@
     <string name="update_version">v%1$s</string>
     <string name="update_dismiss">Dismiss</string>
 
+    <!-- Language selector -->
+    <string name="lang_title">Language</string>
+    <string name="lang_system">System default</string>
+
+    <!-- Usage history -->
+    <string name="usage_title">Data usage</string>
+    <string name="usage_today">Today: %1$s</string>
+    <string name="usage_today_down">Today download</string>
+    <string name="usage_today_up">Today upload</string>
+    <string name="usage_recent">Recent sessions</string>
+    <string name="usage_empty">No sessions recorded yet.</string>
+
 
 
     <!-- About: engine/core version (parity with the Windows edition) -->
@@ -197,6 +209,13 @@
     <string name="dns_label">DNS inside the tunnel</string>
     <string name="dns_hint">1.1.1.1, 1.0.0.1</string>
     <string name="dns_help">Leave empty for the engine default (1.1.1.1, 1.0.0.1). Invalid entries are ignored.</string>
+    <!-- Encrypted DNS (DoH / DoT) -->
+    <string name="enc_dns_plain">Plain</string>
+    <string name="enc_dns_doh">DoH</string>
+    <string name="enc_dns_dot">DoT</string>
+    <string name="enc_dns_endpoint_label">Custom endpoint (optional)</string>
+    <string name="enc_dns_endpoint_hint">https://cloudflare-dns.com/dns-query</string>
+    <string name="enc_dns_endpoint_help">DoH: full https:// URL. DoT: host or host:port (default port 853). Empty = Cloudflare default.</string>
     <!-- Feature merge: home-screen widget, onboarding, ping, crash report -->
     <string name="widget_desc">Connect or disconnect SoildTunnel with one tap</string>
     <string name="widget_toggle_desc">Toggle connection</string>

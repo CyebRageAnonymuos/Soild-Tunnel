@@ -46,6 +46,10 @@ class MainActivity : ComponentActivity() {
     /** Feature merge: first-run onboarding gate. */
     private lateinit var onboardingStore: OnboardingStore
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.soildtunnel.app.core.LocaleStore.wrap(newBase))
+    }
+
     // Holds the profile to connect with once VPN consent is granted.
     private var pendingProfile: ConnectionProfile? = null
 

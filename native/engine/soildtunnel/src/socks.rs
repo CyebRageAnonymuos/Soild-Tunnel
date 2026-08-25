@@ -317,6 +317,15 @@ async fn resolve(stack: &StackHandle, target: Target) -> Result<IpAddr> {
 }
 
 pub(crate) async fn dns_resolve(stack: &StackHandle, name: &str) -> Result<IpAddr> {
+    // Encrypted DNS first (DoH / DoT). Any failure silently falls through to
+    // the plain in-tunnel UDP path below, so a blocked endpoint can never
+    // take name resolution down.
+    if crate::encrypted_dns::mode() != crate::encrypted_dns::Mode::Plain {
+        match crate::encrypted_dns::resolve(name).await {
+            Ok(ip) => return Ok(ip),
+            Err(e) => log::debug!("encrypted dns failed for {name}: {e}; falling back to plain"),
+        }
+    }
     let udp = stack.open_udp().await?;
     let (sender, mut from_stack) = udp.into_split();
     let outcome = dns_exchange(&sender, &mut from_stack, name).await;
@@ -394,7 +403,7 @@ async fn dns_exchange(
 
 const QTYPE_A: u16 = 1;
 
-fn build_dns_query(name: &str, qtype: u16) -> (Vec<u8>, u16) {
+pub(crate) fn build_dns_query(name: &str, qtype: u16) -> (Vec<u8>, u16) {
     let mut q = Vec::with_capacity(32 + name.len());
     let id: u16 = rand::random();
     q.extend_from_slice(&id.to_be_bytes());
@@ -464,7 +473,7 @@ pub(crate) fn dns_response_matches(
     u16::from_be_bytes([resp[pos], resp[pos + 1]]) == expected_qtype
 }
 
-fn parse_dns_a(resp: &[u8]) -> Option<IpAddr> {
+pub(crate) fn parse_dns_a(resp: &[u8]) -> Option<IpAddr> {
     if resp.len() < 12 {
         return None;
     }

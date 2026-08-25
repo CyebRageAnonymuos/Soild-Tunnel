@@ -1,7 +1,11 @@
 package com.soildtunnel.app.vpn
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkRequest
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -24,6 +28,8 @@ import com.soildtunnel.app.core.EngineMeta
 import com.soildtunnel.app.core.AutoCandidate
 import com.soildtunnel.app.core.PortProbe
 import com.soildtunnel.app.core.ProfileCodec
+import com.soildtunnel.app.core.StickyServer
+import com.soildtunnel.app.core.UsageStore
 import com.soildtunnel.app.core.HevTunnel
 import com.soildtunnel.app.core.RoutingEngine
 import com.soildtunnel.app.core.ShareBridge
@@ -32,6 +38,7 @@ import com.soildtunnel.app.core.SocksTunBridge
 import com.soildtunnel.app.core.TunnelConfig
 import com.soildtunnel.app.model.ConnectionProfile
 import com.soildtunnel.app.model.ConnectionState
+import com.soildtunnel.app.model.EndpointMode
 import com.soildtunnel.app.model.Noize
 import com.soildtunnel.app.model.Protocol
 import com.soildtunnel.app.model.SplitMode
@@ -74,6 +81,12 @@ class SoildTunnelVpnService : VpnService() {
 
     /** Consecutive failed watchdog probes ( stability watchdog). */
     private var probeFailures = 0
+
+    /** Network switch watcher (Wi-Fi <-> mobile) for fast reconnect. */
+    private var netCallback: ConnectivityManager.NetworkCallback? = null
+
+    @Volatile
+    private var networkChangedAt = 0L
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
@@ -168,6 +181,8 @@ class SoildTunnelVpnService : VpnService() {
         SoildTunnelController.setState(ConnectionState.Connected("$SOCKS_HOST:$SOCKS_PORT"))
         updateNotification(getString(R.string.state_connected))
         DiagnosticsLog.i(TAG, "All checks passed — tunnel is ready.")
+        UsageStore.startSession()
+        registerNetworkWatch()
 
         superviseEngine(resolved)
     }
@@ -183,9 +198,24 @@ class SoildTunnelVpnService : VpnService() {
     private suspend fun connectSmartAuto(userProfile: ConnectionProfile): ConnectionProfile {
         SoildTunnelController.setState(ConnectionState.Launching)
         updateNotification(getString(R.string.state_analyzing))
+        // 24h sticky pin: reuse the range that won last time so the exit
+        // country stays put instead of re-selecting on every connect.
+        val sticky = StickyServer.usable(this)
         val fingerprint = SmartAuto.fingerprint(this)
-        val plan = SmartAuto.buildPlan(userProfile, fingerprint)
-        return runLadder(plan, getString(R.string.err_auto_failed))
+        val plan = SmartAuto.buildPlan(userProfile, fingerprint, sticky?.range)
+        val won = runLadder(plan, getString(R.string.err_auto_failed))
+        val userOwnsEndpoint = userProfile.endpointMode != EndpointMode.AUTO
+        if (!userOwnsEndpoint && won.manualRange.isNotBlank()) {
+            if (sticky != null) {
+                // The pinned range stopped working (ladder fell back to the
+                // full built-in ranges), so drop the pin and let the next
+                // connect pick a fresh edge instead of retrying a dead one.
+                if (!won.manualRange.contains(sticky.range)) StickyServer.clear(this)
+            } else {
+                StickyServer.save(this, won.manualRange.trim())
+            }
+        }
+        return won
     }
 
     /**
@@ -389,6 +419,9 @@ class SoildTunnelVpnService : VpnService() {
     /** Keeps the engine alive; retries with backoff if it dies. */
     private suspend fun superviseEngine(profile: ConnectionProfile) {
         var attempt = 0
+        // Switches observed before supervision starts (initial onAvailable
+        // storm right after registration) must not count as a network change.
+        var lastHandledSwitch = System.currentTimeMillis()
         while (currentScopeActive()) {
             if (engine?.isAlive() == true) {
                 attempt = 0
@@ -401,6 +434,8 @@ class SoildTunnelVpnService : VpnService() {
                 // wakes us the instant the engine exits and never before, so a
                 // healthy tunnel costs exactly zero polling.
                 engine?.awaitExit(WATCHDOG_INTERVAL_MS)
+                val switched = networkChangedAt > lastHandledSwitch
+                if (switched) lastHandledSwitch = networkChangedAt
                 // STABILITY WATCHDOG (hardened): the engine process can
                 // stay alive while its session silently dies -- the classic
                 // "connected, but after a minute or two no site opens"
@@ -410,6 +445,14 @@ class SoildTunnelVpnService : VpnService() {
                 if (engine?.isAlive() == true) {
                     if (probeTunnelCycle()) {
                         probeFailures = 0
+                    } else if (switched) {
+                        // Wi-Fi <-> mobile handover kills most QUIC/WG
+                        // sessions outright, so a single failed probe after a
+                        // switch means the tunnel is dead: skip the usual
+                        // three-cycle wait and restart immediately.
+                        DiagnosticsLog.w(TAG, "Network changed and the tunnel did not survive it -- fast restart.")
+                        probeFailures = 0
+                        engine?.stop()
                     } else if (++probeFailures >= WATCHDOG_FAIL_CYCLES) {
                         DiagnosticsLog.w(
                             TAG,
@@ -456,6 +499,30 @@ class SoildTunnelVpnService : VpnService() {
     }
 
     private fun currentScopeActive(): Boolean = runJob?.isActive ?: false
+
+    /** Watches for Wi-Fi <-> mobile handovers so the supervisor can react fast. */
+    private fun registerNetworkWatch() {
+        if (netCallback != null) return
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
+        val cb = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                networkChangedAt = System.currentTimeMillis()
+            }
+
+            override fun onLost(network: Network) {
+                networkChangedAt = System.currentTimeMillis()
+            }
+        }
+        runCatching { cm.registerNetworkCallback(NetworkRequest.Builder().build(), cb) }
+            .onSuccess { netCallback = cb }
+    }
+
+    private fun unregisterNetworkWatch() {
+        val cb = netCallback ?: return
+        netCallback = null
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
+        runCatching { cm.unregisterNetworkCallback(cb) }
+    }
 
     private fun establishTun(profile: ConnectionProfile) {
         // User-tunable MTU (defaults to 1280 — safe for Iranian mobile/DPI).
@@ -620,6 +687,8 @@ class SoildTunnelVpnService : VpnService() {
     private fun stopEverything() {
         SoildTunnelController.setState(ConnectionState.Disconnecting)
         updateNotification(getString(R.string.state_disconnecting))
+        UsageStore.endSession()
+        unregisterNetworkWatch()
         val job = runJob
         runJob = null
         // DISCONNECT MUST BE INSTANT. Order matters:
@@ -801,6 +870,8 @@ class SoildTunnelVpnService : VpnService() {
 
     override fun onDestroy() {
         runJob?.cancel()
+        UsageStore.endSession()
+        unregisterNetworkWatch()
         cleanupNativeOnly()
         scope.coroutineContext[Job]?.cancel()
         super.onDestroy()

@@ -59,6 +59,7 @@ import com.soildtunnel.app.ui.components.AppPickerDialog
 import com.soildtunnel.app.ui.components.DropdownSelector
 import com.soildtunnel.app.ui.components.LtrOutlinedTextField
 import com.soildtunnel.app.ui.components.SegmentedSelector
+import com.soildtunnel.app.model.DnsMode
 
 /**
  * Collapsible "Advanced" card exposing the full engine feature set:
@@ -259,17 +260,41 @@ fun AdvancedPanel(
 
                     // ---------- DNS inside the tunnel ----------
                     SettingLabel(stringResource(R.string.dns_label))
-                    // BiDi: resolver addresses are LTR technical text.
-                    LtrOutlinedTextField(
-                        value = profile.dnsServers,
-                        onValueChange = { onProfileChange(profile.copy(dnsServers = it)) },
+                    SegmentedSelector(
+                        options = DnsMode.entries,
+                        selected = profile.dnsMode,
+                        onSelect = { onProfileChange(profile.copy(dnsMode = it)) },
+                        label = { dnsModeLabel(it) },
                         enabled = enabled,
-                        singleLine = true,
-                        label = { Text(stringResource(R.string.dns_label)) },
-                        placeholder = { Text(stringResource(R.string.dns_hint)) },
-                        supportingText = { Text(stringResource(R.string.dns_help)) },
-                        modifier = Modifier.fillMaxWidth(),
                     )
+                    if (profile.dnsMode != DnsMode.PLAIN) {
+                        Spacer(Modifier.height(8.dp))
+                        LtrOutlinedTextField(
+                            value = profile.encryptedDnsEndpoint,
+                            onValueChange = { onProfileChange(profile.copy(encryptedDnsEndpoint = it)) },
+                            enabled = enabled,
+                            singleLine = true,
+                            label = { Text(stringResource(R.string.enc_dns_endpoint_label)) },
+                            placeholder = { Text(stringResource(R.string.enc_dns_endpoint_hint)) },
+                            supportingText = { Text(stringResource(R.string.enc_dns_endpoint_help)) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    if (profile.dnsMode == DnsMode.PLAIN) {
+                        Spacer(Modifier.height(8.dp))
+                        LtrOutlinedTextField(
+                            value = profile.dnsServers,
+                            onValueChange = { onProfileChange(profile.copy(dnsServers = it)) },
+                            enabled = enabled,
+                            singleLine = true,
+                            label = { Text(stringResource(R.string.dns_label)) },
+                            placeholder = { Text(stringResource(R.string.dns_hint)) },
+                            supportingText = { Text(stringResource(R.string.dns_help)) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        HelperText(stringResource(R.string.dns_help))
+                    }
                     Spacer(Modifier.height(16.dp))
 
                     // ---------- Routing rules ----------
@@ -812,6 +837,13 @@ private fun endpointLabel(m: EndpointMode): String = when (m) {
     EndpointMode.AUTO -> stringResource(R.string.endpoint_auto)
     EndpointMode.MANUAL_PEER -> stringResource(R.string.endpoint_peer)
     EndpointMode.MANUAL_RANGE -> stringResource(R.string.endpoint_range)
+}
+
+@Composable
+private fun dnsModeLabel(m: DnsMode): String = when (m) {
+    DnsMode.PLAIN -> stringResource(R.string.enc_dns_plain)
+    DnsMode.DOH -> stringResource(R.string.enc_dns_doh)
+    DnsMode.DOT -> stringResource(R.string.enc_dns_dot)
 }
 
 @Composable

@@ -6,6 +6,7 @@ pub mod cli;
 pub mod config;
 pub mod consts;
 pub mod dns;
+pub mod encrypted_dns;
 pub mod error;
 pub mod ffi;
 pub mod fragment;

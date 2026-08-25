@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import com.soildtunnel.app.model.ConnectionProfile
 import com.soildtunnel.app.model.CoreLogLevel
+import com.soildtunnel.app.model.DnsMode
 import com.soildtunnel.app.model.EndpointMode
 import com.soildtunnel.app.model.IpVersion
 import com.soildtunnel.app.model.Noize
@@ -42,6 +43,8 @@ class ProfileStore(private val context: Context) {
         val split = stringPreferencesKey("split")
         val splitApps = stringPreferencesKey("splitApps")
         val dns = stringPreferencesKey("dns")
+        val dnsMode = stringPreferencesKey("dnsMode")
+        val encryptedDnsEndpoint = stringPreferencesKey("encryptedDnsEndpoint")
         val team = stringPreferencesKey("team")
         val teamAuth = stringPreferencesKey("teamAuth")
         val accessId = stringPreferencesKey("accessId")
@@ -109,6 +112,9 @@ class ProfileStore(private val context: Context) {
             splitApps = prefs[Keys.splitApps]
                 ?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
             dnsServers = prefs[Keys.dns] ?: "",
+            dnsMode = runCatching { DnsMode.valueOf(prefs[Keys.dnsMode] ?: "PLAIN") }
+                .getOrDefault(DnsMode.PLAIN),
+            encryptedDnsEndpoint = prefs[Keys.encryptedDnsEndpoint] ?: "",
             team = prefs[Keys.team] ?: "",
             teamAuth = prefs[Keys.teamAuth]
                 ?.let { runCatching { TeamAuth.valueOf(it) }.getOrNull() } ?: TeamAuth.OFF,
@@ -163,6 +169,8 @@ class ProfileStore(private val context: Context) {
             prefs[Keys.split] = profile.splitMode.name
             prefs[Keys.splitApps] = profile.splitApps.joinToString(",")
             prefs[Keys.dns] = profile.dnsServers
+            prefs[Keys.dnsMode] = profile.dnsMode.name
+            prefs[Keys.encryptedDnsEndpoint] = profile.encryptedDnsEndpoint
             prefs[Keys.team] = profile.team
             prefs[Keys.teamAuth] = profile.teamAuth.name
             prefs[Keys.accessId] = profile.accessClientId

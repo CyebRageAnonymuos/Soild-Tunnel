@@ -141,12 +141,14 @@ object SmartAuto {
 
     // ---- Stage 3: turn the fingerprint into an ordered strategy ladder ----
 
-    fun buildPlan(user: ConnectionProfile, fp: NetworkFingerprint): List<AutoCandidate> {
+    fun buildPlan(user: ConnectionProfile, fp: NetworkFingerprint, stickyRange: String? = null): List<AutoCandidate> {
         // Prefer the ranges that actually answered, fastest first. Narrowing
         // the scan to live ranges is what makes each attempt FAST; the last
         // resort below still covers the full built-in ranges.
         val reachable = fp.edgeLatencyMs.filterValues { it >= 0 }.entries.sortedBy { it.value }
-        val bestRanges = reachable.take(2).joinToString(", ") { it.key }
+        var bestRanges = reachable.take(2).joinToString(", ") { it.key }
+        // A 24h sticky pin overrides fresh probing so the exit stays put.
+        if (!stickyRange.isNullOrBlank()) bestRanges = stickyRange.trim()
         // NEVER override an endpoint the user pinned manually in Settings.
         val keepUserEndpoint = user.endpointMode != EndpointMode.AUTO
 

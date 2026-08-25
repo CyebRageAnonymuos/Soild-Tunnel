@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SoildTunnel</string>
+    <string name="tagline">آزادی، در یک لمس</string>
+
+    <string name="advanced">تنظیمات پیشرفته</string>
+
+    <string name="protocol">پروتکل</string>
+    <string name="protocol_auto">هوشمند</string>
+    <string name="protocol_masque">MASQUE</string>
+    <string name="protocol_wireguard">WireGuard</string>
+    <string name="protocol_gool">WARP×2</string>
+
+    <string name="scan_mode">حالت اسکن</string>
+    <string name="scan_turbo">توربو</string>
+    <string name="scan_balanced">متعادل</string>
+    <string name="scan_thorough">دقیق</string>
+    <string name="scan_stealth">مخفیانه</string>
+    <string name="scan_ironclad">فولادی</string>
+
+    <string name="ip_version">نسخه IP</string>
+    <string name="ip_v4">IPv4</string>
+    <string name="ip_v6">IPv6</string>
+    <string name="ip_both">هر دو</string>
+
+    <string name="quick_reconnect">اتصال مجدد سریع</string>
+    <string name="quick_reconnect_desc">بعد از قطعی، سریع‌تر وصل شو</string>
+    <string name="masque_http2">MASQUE روی HTTP/2</string>
+    <string name="masque_http2_desc">استفاده از HTTP/2 برای ترنسپورت MASQUE</string>
+
+    <string name="state_idle">قطع شده</string>
+    <string name="state_launching">راه‌اندازی موتور…</string>
+    <string name="state_connecting">در حال اتصال…</string>
+    <string name="state_connected">متصل</string>
+    <string name="state_reconnecting">اتصال مجدد…</string>
+    <string name="state_disconnecting">در حال قطع…</string>
+    <string name="state_error">اتصال ناموفق</string>
+
+    <string name="tap_to_connect">برای اتصال امن لمس کن</string>
+    <string name="tap_to_disconnect">برای قطع لمس کن</string>
+    <string name="secure_via">تونل امن از طریق %1$s</string>
+    <string name="reconnect_attempt">تلاش %1$d از %2$d</string>
+
+    <string name="notif_channel">وضعیت VPN</string>
+    <string name="notif_channel_desc">وضعیت اتصال SoildTunnel را نشان می‌دهد</string>
+    <string name="notif_title">SoildTunnel</string>
+
+    <string name="err_engine_timeout">موتور به‌موقع پروکسی محلی را باز نکرد.</string>
+    <string name="err_engine_died">موتور به‌طور غیرمنتظره متوقف شد.</string>
+    <string name="err_proxy_ports">باز کردن پورت‌های پروکسی محلی ممکن نشد — شاید برنامه دیگری آن‌ها را اشغال کرده است.</string>
+
+    <!-- Connection meta: IP + flag + timer -->
+    <string name="ip_your_label">IP شما</string>
+    <string name="ip_server_label">IP سرور</string>
+    <string name="ip_checking">بررسی IP…</string>
+    <string name="ip_unavailable">IP در دسترس نیست</string>
+    <string name="connected_for">مدت اتصال</string>
+
+    <!-- Diagnostics panel -->
+    <string name="diag_title">عیب‌یابی و لاگ‌ها</string>
+    <string name="diag_subtitle">وضعیت زنده همه بخش‌های تونل</string>
+    <string name="diag_run">اجرای تست</string>
+    <string name="diag_copy">کپی لاگ‌ها</string>
+    <string name="diag_clear">پاک کردن</string>
+    <string name="diag_copied">لاگ‌ها کپی شد</string>
+    <string name="diag_all_ok">همه بررسی‌ها موفق بود — ترافیک باید رد شود</string>
+    <string name="diag_problem">مشكلی شناسایی شد — بررسیِ ناموفق را ببین</string>
+    <string name="diag_idle">برای بررسی اتصال، تست را اجرا کن</string>
+    <string name="diag_empty_logs">هنوز لاگی نیست. وصل شو یا تست بگیر.</string>
+
+    <!-- About panel -->
+    <string name="about_title">درباره</string>
+    <string name="about_subtitle">اعتبارها، لینک‌ها و امکانات این نسخه</string>
+    <string name="about_version">نسخه %1$s</string>
+    <string name="about_license_title">متن‌باز</string>
+    <string name="about_license_note">AGPL v3 — سورس کد در گیت‌هاب موجود است</string>
+    <string name="menu_open">باز کردن منو</string>
+    <string name="advanced_open">باز کردن تنظیمات پیشرفته</string>
+
+    <!-- Quick Settings tile -->
+    <string name="qs_tile_label">SoildTunnel</string>
+
+    <!-- Share VPN panel -->
+    <string name="share_title">اشتراک VPN</string>
+    <string name="share_subtitle">گوشی‌ات را پروکسی لپ‌تاپ یا گوشی دیگر کن</string>
+    <string name="share_toggle">اشتراک در این شبکه</string>
+    <string name="share_toggle_desc">یک پروکسی محلی باز می‌کند که دستگاه‌های همان وای‌فای یا هات‌اسپات می‌توانند استفاده کنند</string>
+    <string name="share_http_label">پروکسی HTTP — در تنظیمات پروکسی سیستم وارد کن</string>
+    <string name="share_socks_label">پروکسی SOCKS5 — برای برنامه‌هایی که ساپورت می‌کنند</string>
+    <string name="share_copy">کپی آدرس</string>
+    <string name="share_copied">آدرس کپی شد</string>
+    <string name="share_need_connect">اول VPN را وصل کن — اشتراک، دستگاه‌های دیگر را از تونل همین گوشی رد می‌کند.</string>
+    <string name="share_starting">شروع اشتراک… اگر چند ثانیه بیشتر طول کشید، کلید را خاموش و روشن کن.</string>
+    <string name="share_need_wifi">برای اشتراک، به یک شبکه وای‌فای وصل شو یا هات‌اسپات را روشن کن.</string>
+    <string name="share_howto">روی دستگاه دیگر (همان شبکه)، تنظیمات پروکسی را باز کن و یکی از این آدرس‌ها را وارد کن:</string>
+    <string name="share_warning">وقتی اشتراک روشن است، هر کسی در این شبکه می‌تواند از پروکسی استفاده کند. فقط روی شبکه‌های معتبر.</string>
+
+    <string name="traffic_download">دانلود</string>
+    <string name="traffic_upload">آپلود</string>
+    <string name="traffic_total">جمع %1$s</string>
+
+    <!-- Obfuscation (Amnezia) -->
+    <string name="noize_title">مخفی‌سازی (Amnezia)</string>
+    <string name="noize_desc">ترافیک بی‌ارزش + هندشیک جعلی تزریق می‌کند تا DPI نتونه تونل را اثرانگشت کند</string>
+    <string name="noize_off">خاموش</string>
+    <string name="noize_light">سبک</string>
+    <string name="noize_firewall">فایروال</string>
+    <string name="noize_balanced">متعادل</string>
+    <string name="noize_gfw">GFW</string>
+    <string name="noize_aggressive">تهاجمی</string>
+
+    <!-- Endpoint selection / manual range -->
+    <string name="endpoint_mode">نقطه اتصال</string>
+    <string name="endpoint_auto">اسکن خودکار</string>
+    <string name="endpoint_peer">IP دستی</string>
+    <string name="endpoint_range">رنج دلخواه</string>
+    <string name="manual_peer_label">نقطه اتصال (ip:port)</string>
+    <string name="manual_peer_hint">مثلاً 162.159.192.1:443</string>
+    <string name="manual_range_label">رنج(های) IP برای اسکن</string>
+    <string name="manual_range_hint">مثلاً 8.6.112.0/24, 188.114.96.0/24</string>
+    <string name="manual_range_help">موتور فقط رنج(هایی) که می‌نویسی را اسکن می‌کند. فرمت 8.6.112.x یا 8.6.112.0/24 یا یک IP تنها قبول است. چند رنج را با کاما جدا کن.</string>
+
+    <!-- Transport tuning -->
+    <string name="keepalive_label">Keepalive (ثانیه)</string>
+    <string name="keepalive_default">پیش‌فرض</string>
+    <string name="fragment_title">قطعه‌قطعه‌سازی TLS</string>
+    <string name="fragment_desc">هندشیک TLS را تقسیم می‌کند تا از DPI رد شود</string>
+    <string name="ech_title">Client Hello رمزنگاری‌شده</string>
+    <string name="ech_desc">نام مقصد (SNI) را از دید DPI مخفی می‌کند</string>
+    <string name="mtu_label">MTU</string>
+    <string name="mtu_desc">مقادیر پایین‌تر (1280) روی دیتای موبایل مطمئن‌ترند</string>
+
+    <!-- Proxy mode + split tunneling -->
+    <string name="proxy_mode_title">حالت پروکسی (بدون VPN سیستمی)</string>
+    <string name="proxy_mode_desc">به‌جای روت کردن کل دستگاه، یک پروکسی محلی SOCKS5/HTTP اجرا می‌کند</string>
+    <string name="proxy_endpoints_hint">آدرس‌های ثابت — یکی از این‌ها را در تنظیمات پروکسی برنامه دیگر وارد کن:</string>
+    <string name="proxy_socks_label">پروکسی SOCKS5</string>
+    <string name="proxy_http_label">پروکسی HTTP</string>
+    <string name="split_mode">تونل تفکیکی</string>
+    <string name="split_off">خاموش</string>
+    <string name="split_include">فقط انتخاب‌شده‌ها</string>
+    <string name="split_exclude">به‌جز انتخاب‌شده‌ها</string>
+    <string name="split_select_apps">انتخاب برنامه‌ها (%1$d)</string>
+    <string name="apps_dialog_title">انتخاب برنامه‌ها</string>
+    <string name="apps_search_hint">جستجوی برنامه‌ها</string>
+    <string name="apps_done">تمام</string>
+    <string name="apps_loading">در حال بارگذاری برنامه‌ها…</string>
+    <string name="section_transport">ترنسپورت و ضد-DPI</string>
+    <string name="section_routing">مسیریابی</string>
+
+    <!-- Readiness gating + settings reset -->
+    <string name="state_verifying">بررسی اتصال…</string>
+    <string name="state_analyzing">تحلیل شبکه‌ات (حالت هوشمند)…</string>
+    <string name="err_auto_failed">حالت هوشمند همه استراتژی‌ها را امتحان کرد ولی هیچ‌کدام روی این شبکه وصل نشد. یک پروتکل را دستی انتخاب کن.</string>
+    <string name="err_protocol_failed">این پروتکل حتی با مخفی‌سازی هم روی این شبکه وصل نشد. حالت هوشمند یا پروتکل دیگری را امتحان کن.</string>
+    <string name="err_selftest">تونل بالا آمد ولی تست سر‌تا‌سرش شکست خورد. دوباره تلاش کن.</string>
+    <string name="section_reset">بازنشانی</string>
+    <string name="reset_settings">بازگردانی همه تنظیمات به حالت پیش‌فرض</string>
+    <string name="reset_done">تنظیمات به پیش‌فرض برگشت</string>
+
+    <!-- In-app update checker -->
+    <string name="update_available">به‌روزرسانی موجود است</string>
+    <string name="update_version">v%1$s</string>
+    <string name="update_dismiss">رد کردن</string>
+
+    <!-- Language selector -->
+    <string name="lang_title">زبان</string>
+    <string name="lang_system">پیش‌فرض سیستم</string>
+
+    <!-- Usage history -->
+    <string name="usage_title">مصرف دیتا</string>
+    <string name="usage_today">امروز: %1$s</string>
+    <string name="usage_today_down">دانلود امروز</string>
+    <string name="usage_today_up">آپلود امروز</string>
+    <string name="usage_recent">سشن‌های اخیر</string>
+    <string name="usage_empty">هنوز سشنی ثبت نشده.</string>
+
+
+
+    <!-- About: engine/core version (parity with the Windows edition) -->
+    <string name="about_core_version">نسخه موتور (کر): %1$s</string>
+
+    <!-- Engine feature strings -->
+    <string name="section_zerotrust">Zero Trust (سازمانی)</string>
+    <string name="team_auth_label">روش عضویت</string>
+    <string name="team_auth_off">خاموش</string>
+    <string name="team_auth_service">توکن سرویس</string>
+    <string name="team_auth_email">کد ایمیل</string>
+    <string name="team_auth_token">توکن عضویت</string>
+    <string name="team_auth_desc">به‌جای WARP معمولی به سازمان Cloudflare Zero Trust بپیوند. برای استفاده عادی خاموش بگذار.</string>
+    <string name="team_label">نام تیم</string>
+    <string name="team_hint">acme</string>
+    <string name="team_help">فقط اسم — یعنی acme.cloudflareaccess.com.</string>
+    <string name="access_id_label">شناسه کاربری</string>
+    <string name="access_secret_label">رمز کاربری</string>
+    <string name="access_email_label">ایمیل سازمانی</string>
+    <string name="access_token_label">توکن عضویت</string>
+    <string name="access_secret_help">با کلید سخت‌افزاری رمزنگاری و خارج از خط فرمان به موتور داده می‌شود.</string>
+    <string name="gateway_title">استفاده از Gateway سازمان</string>
+    <string name="gateway_desc">HTTP/HTTPS را از پروکسی فیلترینگ سازمانتان عبور می‌دهد. یک هاپ اضافه می‌کند و سازمان می‌تواند مرور شما را ثبت کند — مگر لازم باشد، خاموش.</string>
+
+    <string name="section_routes">قوانین مسیریابی</string>
+    <string name="route_block_label">هرگز وصل نشو (مسدود)</string>
+    <string name="route_block_hint">ads.example.com, port:25</string>
+    <string name="route_direct_label">رد شدن از تونل (مستقیم)</string>
+    <string name="route_direct_hint">private, bank.example.com</string>
+    <string name="routes_help">با کاما جدا کن. example.com و full: و keyword: و regexp: و 10.0.0.0/8 و port:25 و private ساپورت می‌شوند. اول Block چک می‌شود بعد Direct.</string>
+
+    <string name="dns_label">DNS داخل تونل</string>
+    <string name="dns_hint">1.1.1.1, 1.0.0.1</string>
+    <string name="dns_help">خالی بگذار برای پیش‌فرض موتور (1.1.1.1, 1.0.0.1). مقادیر نامعتبر نادیده گرفته می‌شوند.</string>
+    <!-- Encrypted DNS (DoH / DoT) -->
+    <string name="enc_dns_plain">ساده</string>
+    <string name="enc_dns_doh">DoH</string>
+    <string name="enc_dns_dot">DoT</string>
+    <string name="enc_dns_endpoint_label">نقطه اتصال دلخواه (اختیاری)</string>
+    <string name="enc_dns_endpoint_hint">https://cloudflare-dns.com/dns-query</string>
+    <string name="enc_dns_endpoint_help">DoH: آدرس کامل https:// . DoT: هاست یا host:port (پورت پیش‌فرض 853). خالی = پیش‌فرض Cloudflare.</string>
+    <!-- Feature merge: home-screen widget, onboarding, ping, crash report -->
+    <string name="widget_desc">با یک لمس SoildTunnel را وصل یا قطع کن</string>
+    <string name="widget_toggle_desc">تغییر وضعیت اتصال</string>
+    <string name="ping_label">پینگ</string>
+    <string name="ping_measuring">در حال اندازه‌گیری…</string>
+    <string name="ping_unavailable">N/A</string>
+    <string name="ping_hint">برای اندازه‌گیری دوباره لمس کن</string>
+    <string name="onboarding_skip">رد شدن</string>
+    <string name="onboarding_next">بعدی</string>
+    <string name="onboarding_start">شروع کنیم</string>
+    <string name="onboarding_title_1">به SoildTunnel خوش آمدید</string>
+    <string name="onboarding_body_1">یک تونل سریع و امن که سانسور را دور می‌زند. با یک لمس از طریق MASQUE یا WireGuard یا WARP×2 وصل شو.</string>
+    <string name="onboarding_title_2">انتخاب هوشمند پروتکل</string>
+    <string name="onboarding_body_2">حالت هوشمند شبکه‌ات را تحلیل می‌کند و پروتکل واقعاً کارا را انتخاب می‌کند؛ با مخفی‌سازی ضد-DPI در صورت نیاز.</string>
+    <string name="onboarding_title_3">خصوصی از پایه</string>
+    <string name="onboarding_body_3">نه حساب کاربری، نه لاگ، نه ردیاب. اندروید بار اول اجازه VPN می‌خواهد؛ این خودِ سیستم است که کنترل را دست شما نگه می‌دارد.</string>
+    <string name="crash_title">SoildTunnel غیرمنتظره متوقف شد</string>
+    <string name="crash_subtitle">جزئیات زیر توسط هندلر کرش ذخیره شده. می‌توانی در گزارش باگ کپی‌شان کنی.</string>
+    <string name="crash_copy">کپی جزئیات</string>
+    <string name="crash_copied">کپی شد</string>
+    <string name="crash_dismiss">بستن</string>
+    <string name="section_security">امنیت و پایداری</string>
+    <string name="kill_switch_title">کلید قطع اضطراری</string>
+    <string name="kill_switch_desc">اگر تونل ناگهان بریزد همه ترافیک بلاک می‌شود تا چیزی بیرون VPN لو نرود</string>
+    <string name="strict_kill_switch_title">کلید قطع سخت‌گیرانه</string>
+    <string name="strict_kill_switch_desc">حتی بعد از قطع دستی بلاک می‌ماند تا خودت برداری</string>
+    <string name="state_killswitch">کلید قطع فعال است - ترافیک بلاک شد</string>
+    <string name="ipv6_leak_title">محافظت از نشتی IPv6</string>
+    <string name="ipv6_leak_desc">ترافیک IPv6 هم از داخل تونل رد می‌شود</string>
+    <string name="smart_reconnect_title">اتصال مجدد هوشمند</string>
+    <string name="smart_reconnect_desc">بعد از تعداد محدودی ری‌استارت ناموفق، متوقف و خطا گزارش می‌شود</string>
+    <string name="reconnect_limit_label">حداکثر تلاش اتصال مجدد</string>
+    <string name="section_engine_tuning">تنظیم دقیق موتور</string>
+    <string name="fragment_size_label">بازه سایز قطعه</string>
+    <string name="fragment_size_hint">16-32</string>
+    <string name="fragment_delay_label">بازه تأخیر قطعه (میلی‌ثانیه)</string>
+    <string name="fragment_delay_hint">2-10</string>
+    <string name="no_data_check_title">بدون بررسی دیتا</string>
+    <string name="no_data_check_desc">پراب سر‌تا‌سر دیتای موتور بعد از اتصال رد می‌شود</string>
+    <string name="tls_groups_label">گروه‌های TLS</string>
+    <string name="tls_groups_hint">X25519:P-256</string>
+    <string name="custom_sni_label">جعل SNI (ضد-DPI)</string>
+    <string name="custom_sni_hint">consumer-masque.cloudflareclient.com</string>
+    <string name="custom_sni_desc">SNI در ClientHello را بازنویسی می‌کند تا DPI دور زده شود. خالی = پیش‌فرض.</string>
+    <string name="validate_secs_label">ثانیه Validate (۰ = پیش‌فرض)</string>
+    <string name="reconnect_secs_label">ثانیه اتصال مجدد (۰ = پیش‌فرض)</string>
+    <string name="secs_hint">0</string>
+    <string name="no_profile_retry_title">بدون تلاش مجدد پروفایل</string>
+    <string name="no_profile_retry_desc">به پروفایل‌های جایگزین WireGuard برنمی‌گردد</string>
+    <string name="core_log_level_label">سطح لاگ کر</string>
+    <string name="blocked_select_apps">برنامه‌های مسدود (%1$d)</string>
+    <string name="blocked_apps_desc">برنامه‌های مسدود وقتی VPN روشن است اصلاً اینترنت ندارند. پل فیلتر داخلی را فعال می‌کند.</string>
+    <!-- Info row under the IP badge -->
+    <string name="meta_protocol">پروتکل</string>
+    <string name="meta_endpoint">نقطه اتصال</string>
+    <string name="meta_latency">تأخیر</string>
+
+    <string name="route_sniff_title">شناسایی قوانین دامنه پشت تونل</string>
+    <string name="route_sniff_desc">اسم سایت را از هندشیک TLS/HTTP می‌خواند تا قوانین دامنه بالا روی اندروید هم کار کنند، جایی که موتور وگرنه فقط IP می‌بیند.</string>
+    <string name="route_sniff_ms_label">پنجره انتظار نام (میلی‌ثانیه)</string>
+    <string name="route_sniff_ms_hint">400</string>
+    <string name="section_upstream">پروکسی بالادستی (زنجیره)</string>
+    <string name="upstream_label">پروکسی بالادستی</string>
+    <string name="upstream_hint">socks5://127.0.0.1:1080</string>
+    <string name="upstream_help">از طریق پروکسی‌ای که همین حالا روی گوشی اجراست dial-out می‌کند. socks5://host:port همه پروتکل‌ها را رد می‌کند؛ http://host:port فقط MASQUE روی HTTP/2 را که خودکار برایتان روشن می‌شود. می‌توانید user:pass@host:port هم بدهید؛ خصوصی به موتور می‌رسد نه در خط فرمان. برای اتصال مستقیم خالی بگذارید.</string>
+    <string name="reprovision_title">جایگزینی هویت رد‌شده</string>
+    <string name="reprovision_desc">اگر Cloudflare هویت ذخیره‌شده دستگاه را نپذیرد، خودکار یک هویت تازه ثبت می‌کند به‌جای نگه داشتن تونلی که وصل است ولی ترافیکی رد نمی‌کند.</string>
+
+    <!-- Control Room console -->
+    <string name="console_label">تله‌متری</string>
+
+    <!-- Server picker -->
+    <string name="server_title">سرور</string>
+    <string name="server_pick_title">انتخاب سرور</string>
+    <string name="server_pick_subtitle">تأخیر زنده از همین دستگاه اندازه‌گیری شده. برای پین کردن روی نود بزن.</string>
+    <string name="server_auto_desc">همه رنج‌های لبه داخلی را اسکن و سریع‌ترین گیت‌وی زنده را نگه می‌دارد</string>
+    <string name="server_selected">انتخاب شد</string>
+    <string name="server_ping_refresh">اندازه‌گیری دوباره تأخیر</string>
+    <string name="server_ping_ms">%1$d ms</string>
+    <string name="ping_measuring_short">···</string>
+    <string name="endpoint_range_custom_short">دلخواه</string>
+</resources>

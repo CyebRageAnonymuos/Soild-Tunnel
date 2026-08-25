@@ -32,6 +32,9 @@ enum class EndpointMode { AUTO, MANUAL_PEER, MANUAL_RANGE }
 /** Per-app tunneling policy (split tunneling). */
 enum class SplitMode { OFF, INCLUDE, EXCLUDE }
 
+/** How names are resolved inside the tunnel; DOH/DOT fall back to plain UDP. */
+enum class DnsMode { PLAIN, DOH, DOT }
+
 /**
  * How the device enrols into a Cloudflare Zero Trust ("WARP for teams")
  * organization (see zerotrust.rs).
@@ -105,6 +108,13 @@ data class ConnectionProfile(
      * (1.1.1.1, 1.0.0.1). Comma separated; a bare IP implies port 53.
      */
     val dnsServers: String = "",
+    /** Name resolution strategy for tunnel traffic (see [DnsMode]). */
+    val dnsMode: DnsMode = DnsMode.PLAIN,
+    /**
+     * Custom encrypted endpoint. For DOH a full https:// URL, for DOT a
+     * host or host:port. Blank = engine default (Cloudflare).
+     */
+    val encryptedDnsEndpoint: String = "",
 
     /**
      * Zero Trust organization ("team") name, e.g. "acme" for
@@ -383,6 +393,34 @@ data class ConnectionProfile(
         // CLI argument: any local app can read /proc/<pid>/cmdline of a process
         // it can see, but not that process's environment block.
         sanitizedUpstream()?.let { put("SOILDTUNNEL_UPSTREAM", it) }
+
+        // Encrypted DNS (DoH / DoT). Plain UDP stays as the automatic fallback
+        // inside the engine, so a blocked endpoint never breaks resolution.
+        when (dnsMode) {
+            DnsMode.PLAIN -> {}
+            DnsMode.DOH -> {
+                put("SOILDTUNNEL_DNS_MODE", "doh")
+                sanitizedDohUrl()?.let { put("SOILDTUNNEL_DOH_URL", it) }
+            }
+            DnsMode.DOT -> {
+                put("SOILDTUNNEL_DNS_MODE", "dot")
+                sanitizedDotHost()?.let { put("SOILDTUNNEL_DOT_HOST", it) }
+            }
+        }
+    }
+
+    /** https:// only, no whitespace, sane length; blank input = engine default. */
+    fun sanitizedDohUrl(): String? {
+        val v = encryptedDnsEndpoint.trim()
+        if (v.isEmpty()) return null
+        return if (v.startsWith("https://") && v.length <= 200 && !v.contains(' ')) v else null
+    }
+
+    /** host[:port] or ip[:port]; anything with a scheme or whitespace is dropped. */
+    fun sanitizedDotHost(): String? {
+        val v = encryptedDnsEndpoint.trim().removePrefix("tls://").trim()
+        if (v.isEmpty() || v.length > 200 || v.contains(' ') || v.contains('/')) return null
+        return v
     }
 
     /**

@@ -8,6 +8,7 @@ import android.util.Log
 import com.soildtunnel.app.core.DiagnosticsLog
 import com.soildtunnel.app.core.ServerPinger
 import com.soildtunnel.app.core.UpdateChecker
+import com.soildtunnel.app.core.UsageStore
 import java.io.File
 
 class SoildTunnelApp : Application() {
@@ -19,6 +20,7 @@ class SoildTunnelApp : Application() {
         DiagnosticsLog.init(File(filesDir, "diagnostics.log"))
         ServerPinger.init(this)
         UpdateChecker.init(this)
+        UsageStore.init(this)
         installCrashHandler()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

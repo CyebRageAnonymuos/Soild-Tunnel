@@ -68,8 +68,13 @@ object ServerPinger {
                     }
                 }.forEach { it.await() }
             }
-            lastSweepAt = System.currentTimeMillis()
-            prefs?.edit()?.putLong(KEY_LAST_SWEEP, lastSweepAt)?.apply()
+            // Stamp the sweep timestamp only when at least one probe answered.
+            // A total blackout (offline, blocked network) must not block retries.
+            val anySuccess = _state.value.values.any { it.ms >= 0 }
+            if (anySuccess) {
+                lastSweepAt = System.currentTimeMillis()
+                prefs?.edit()?.putLong(KEY_LAST_SWEEP, lastSweepAt)?.apply()
+            }
             saveToDisk()
         } finally {
             sweepGuard.set(false)
@@ -179,6 +184,6 @@ object ServerPinger {
     private const val MIN_VISIBLE_MS = 350L
     private const val TRACE_SNI = "speed.cloudflare.com"
     private const val MAX_TRACE_BYTES = 32_000
-    private const val STALE_MS = 6 * 60 * 60 * 1000L // 6 hours
+    private const val STALE_MS = 24 * 60 * 60 * 1000L // 24 hours
     private val COLO_REGEX = Regex("(?:^|[\r\n])colo=([A-Za-z0-9]+)")
 }

@@ -75,6 +75,8 @@ import com.soildtunnel.app.ui.components.ButtonMode
 import com.soildtunnel.app.ui.components.ConnectButton
 import com.soildtunnel.app.ui.components.ConnectionCard
 import com.soildtunnel.app.ui.components.DiagnosticsPanel
+import com.soildtunnel.app.ui.components.LanguagePanel
+import com.soildtunnel.app.ui.components.UsagePanel
 import com.soildtunnel.app.ui.components.ServerPickerSheet
 import com.soildtunnel.app.ui.components.glassChip
 import com.soildtunnel.app.ui.theme.CardSubSurface
@@ -191,6 +193,10 @@ fun HomeScreen(
 
                         Spacer(Modifier.height(16.dp))
 
+                        UsagePanel()
+
+                        Spacer(Modifier.height(16.dp))
+
                         SharePanel(
                             state = state,
                             profile = profile,
@@ -204,6 +210,10 @@ fun HomeScreen(
                             onProfileChange = onProfileChange,
                             enabled = settingsEnabled,
                         )
+
+                        Spacer(Modifier.height(16.dp))
+
+                        LanguagePanel()
 
                         Spacer(Modifier.height(16.dp))
 
@@ -450,7 +460,7 @@ private fun ServerSelectorPill(
             letterSpacing = 1.4.sp,
             color = if (isAuto) CardTextPrimary else NeonCyan,
         )
-        if (selected != null && !isAuto) {
+        if (selected != null) {
             HomePingBadge(nodeId = selected.id)
         }
         Spacer(Modifier.weight(1f))
