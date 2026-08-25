@@ -304,7 +304,7 @@ data class ConnectionProfile(
         // HTTP/2 over TCP whenever the user chained the engine behind an
         // http:// proxy. Forcing it here turns "connects but nothing loads"
         // into a working session the user never has to debug.
-        val httpUpstream = sanitizedUpstream?.startsWith("http://") == true
+        val httpUpstream = sanitizedUpstream()?.startsWith("http://") == true
         put("SOILDTUNNEL_MASQUE_HTTP2", if (masqueHttp2 || httpUpstream) "1" else "0")
 
         // Which addresses the engine's scanner may consider.
