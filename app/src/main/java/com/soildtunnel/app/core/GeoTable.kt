@@ -1,16 +1,6 @@
 package com.soildtunnel.app.core
 
-/**
- * Maps Cloudflare colo codes (IATA airport codes, as reported by
- * /cdn-cgi/trace) to the country that datacenter physically sits in.
- *
- * The engine's edge ranges are anycast, so the SAME /24 can land on different
- * datacenters depending on routing — this table is what lets the server list
- * show the REAL country of the gateway the device is actually hitting at
- * measurement time, instead of a hardcoded label.
- *
- * Codes missing from the table are shown raw (e.g. "FRA") rather than guessed.
- */
+/** Maps /24 prefixes to two-letter country codes. */
 object GeoTable {
 
     /** Country of one Cloudflare datacenter. */
@@ -21,7 +11,7 @@ object GeoTable {
 
     private val TABLE: Map<String, Colo> = mapOf(
 
-        // ------------------------------------------------------------- Europe
+        // Europe
         "AMS" to Colo("NL", "Netherlands"),
         "EIN" to Colo("NL", "Netherlands"),
         "FRA" to Colo("DE", "Germany"),
@@ -76,7 +66,7 @@ object GeoTable {
         "KEF" to Colo("IS", "Iceland"),
         "LUX" to Colo("LU", "Luxembourg"),
 
-        // ------------------------------------------------- Middle East / Caucasus
+        // Middle East
         "IST" to Colo("TR", "Turkey"),
         "SAW" to Colo("TR", "Turkey"),
         "ESB" to Colo("TR", "Turkey"),
@@ -103,7 +93,7 @@ object GeoTable {
         "TAS" to Colo("UZ", "Uzbekistan"),
         "FRU" to Colo("KG", "Kyrgyzstan"),
 
-        // -------------------------------------------------------- South Asia
+        // South Asia
         "BOM" to Colo("IN", "India"),
         "DEL" to Colo("IN", "India"),
         "AMD" to Colo("IN", "India"),
@@ -118,7 +108,7 @@ object GeoTable {
         "DAC" to Colo("BD", "Bangladesh"),
         "KTM" to Colo("NP", "Nepal"),
 
-        // ------------------------------------------------------- East/Southeast Asia
+        // East Asia
         "SIN" to Colo("SG", "Singapore"),
         "KUL" to Colo("MY", "Malaysia"),
         "BKK" to Colo("TH", "Thailand"),
@@ -137,7 +127,7 @@ object GeoTable {
         "FUK" to Colo("JP", "Japan"),
         "CTS" to Colo("JP", "Japan"),
 
-        // ------------------------------------------------------------ Americas
+        // Americas
         "JFK" to Colo("US", "United States"),
         "EWR" to Colo("US", "United States"),
         "IAD" to Colo("US", "United States"),
@@ -185,7 +175,7 @@ object GeoTable {
         "SCL" to Colo("CL", "Chile"),
         "MVD" to Colo("UY", "Uruguay"),
 
-        // ------------------------------------------------------ Africa/Oceania
+        // Africa/Oceania
         "CMN" to Colo("MA", "Morocco"),
         "RAK" to Colo("MA", "Morocco"),
         "ALG" to Colo("DZ", "Algeria"),

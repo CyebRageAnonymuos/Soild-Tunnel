@@ -9,19 +9,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalView
 
-/** The void behind everything: pure near-black with a whisper of blue. */
+/** Void behind everything: near-black with slight blue tint. */
 val Void = Color(0xFF030408)
 
-// ---------------------------------------------------------------------------
-// CONTROL ROOM NEON scheme — always dark, always the same palette.
-//
-// Dynamic Material You colour is deliberately DISABLED: a wallpaper-derived
-// scheme repainted the console into whatever happened to be on the user's
-// lock screen (see the history note in ConnectionCard). The control-room
-// identity only works if every surface speaks the same neon language, so the
-// scheme below is pinned. Panels that read MaterialTheme tokens (segmented
-// selectors, dropdowns, inputs, cards) inherit it automatically.
-// ---------------------------------------------------------------------------
+// Always-dark pinned scheme. Dynamic color is disabled.
 private val ControlRoomScheme = darkColorScheme(
     primary = NeonCyan,
     onPrimary = Color(0xFF00232B),

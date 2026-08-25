@@ -612,6 +612,17 @@ fun AdvancedPanel(
                     )
                     Spacer(Modifier.height(12.dp))
                     LtrOutlinedTextField(
+                        value = profile.customSni,
+                        onValueChange = { onProfileChange(profile.copy(customSni = it)) },
+                        enabled = enabled,
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.custom_sni_label)) },
+                        placeholder = { Text(stringResource(R.string.custom_sni_hint)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    HelperText(stringResource(R.string.custom_sni_desc))
+                    Spacer(Modifier.height(12.dp))
+                    LtrOutlinedTextField(
                         value = if (profile.validateSecs == 0) "" else profile.validateSecs.toString(),
                         onValueChange = { onProfileChange(profile.copy(validateSecs = it.filter(Char::isDigit).take(4).toIntOrNull() ?: 0)) },
                         enabled = enabled,

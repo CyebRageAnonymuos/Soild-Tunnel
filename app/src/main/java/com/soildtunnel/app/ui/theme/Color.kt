@@ -2,17 +2,11 @@ package com.soildtunnel.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ---------------------------------------------------------------------------
-// CONTROL ROOM NEON — the SoildTunnel design language.
-//
-// A mission-control console aesthetic: near-black void, hairline neon edges,
-// phosphor cyan telemetry and one mint "GO" state. Every surface in the app
-// is built from the tokens in this file; nothing hard-codes its own colour.
-// ---------------------------------------------------------------------------
+// Control Room Neon palette. Near-black base, neon edges, phosphor accents.
 
 // ---- Neon accents ----------------------------------------------------------
 
-/** Primary phosphor: idle/standby accent, borders, focus states. */
+/** Idle/standby accent, borders, focus states. */
 val NeonCyan = Color(0xFF35E0FF)
 /** "GO" state: tunnel up. Kept in the mint family for brand continuity. */
 val NeonMint = Color(0xFF3DFFC8)
@@ -23,7 +17,7 @@ val NeonAmber = Color(0xFFFFC24B)
 /** Fault: errors, unreachable nodes, kill-switch. */
 val NeonRed = Color(0xFFFF4D6F)
 
-// Legacy aliases (older panels still import these names).
+// Back-compat aliases (older panels still import these).
 val SoildTunnelBlue = NeonCyan
 val SoildTunnelCyan = NeonViolet
 val SoildTunnelMint = NeonMint
@@ -48,7 +42,7 @@ val PanelBottom = Color(0xE607090C)
 /** Sub-containers inside a panel (IP pill, speed strip, meta strip). */
 val CardSubSurface = Color(0xFF0B0E14)
 
-// Legacy aliases.
+// Back-compat aliases.
 val CardSurfaceTop = PanelTop
 val CardSurfaceBottom = PanelBottom
 
@@ -70,7 +64,7 @@ val GridLine = Color(0x1135E0FF)
 val GlowPoolCyan = Color(0xFF1E6E85)
 val GlowPoolViolet = Color(0xFF4A3B8C)
 
-// ---- Liquid-glass fills (chips & panes floating on the backdrop) -----------
+// ---- Liquid-glass fills -----------
 
 val GlassFillTop = Color(0x26FFFFFF)
 val GlassFillBottom = Color(0x0DFFFFFF)

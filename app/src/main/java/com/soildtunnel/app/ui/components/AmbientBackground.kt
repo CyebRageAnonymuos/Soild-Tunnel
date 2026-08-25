@@ -12,21 +12,7 @@ import androidx.compose.ui.unit.dp
 import com.soildtunnel.app.ui.theme.GlowPoolViolet
 import com.soildtunnel.app.ui.theme.GridLine
 
-/**
- * The control-room backdrop.
- *
- * Three static layers, back to front:
- *
- * 1. VOID      — near-black base with a whisper of blue;
- * 2. GRID      — a faint phosphor-blueprint grid (the console feel);
- * 3. GLOW POOLS— one cyan pool top-left, one violet pool bottom-right; while
- *                the tunnel is up the pools warm into mint/cyan so the whole
- *                room lights up with the connection.
- *
- * Same performance contract as every backdrop before it: NOTHING animates.
- * Everything is drawn once per size/accent change inside drawBehind — no
- * Canvas node, no recomposition, no frame callbacks.
- */
+/** Static backdrop: void base + grid lines + two glow pools. */
 @Composable
 fun AmbientBackground(
     accent: Color,

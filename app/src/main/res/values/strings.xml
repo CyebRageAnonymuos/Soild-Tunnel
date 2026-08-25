@@ -239,6 +239,9 @@
     <string name="no_data_check_desc">Skip the engine\'s end-to-end data probe after connecting</string>
     <string name="tls_groups_label">TLS groups</string>
     <string name="tls_groups_hint">X25519:P-256</string>
+    <string name="custom_sni_label">SNI spoof (anti-DPI)</string>
+    <string name="custom_sni_hint">consumer-masque.cloudflareclient.com</string>
+    <string name="custom_sni_desc">Override the TLS ClientHello SNI to bypass DPI. Empty = default.</string>
     <string name="validate_secs_label">Validate seconds (0 = default)</string>
     <string name="reconnect_secs_label">Reconnect seconds (0 = default)</string>
     <string name="secs_hint">0</string>

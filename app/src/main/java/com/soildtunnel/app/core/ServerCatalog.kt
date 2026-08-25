@@ -3,19 +3,7 @@ package com.soildtunnel.app.core
 import com.soildtunnel.app.model.ConnectionProfile
 import com.soildtunnel.app.model.EndpointMode
 
-/**
- * One selectable edge node of the built-in server list.
- *
- * A node maps 1:1 to one Cloudflare WARP/MASQUE edge /24 taken from the
- * engine's own built-in range tables (see prober.rs MASQUE_CIDRS_V4 and the
- * Smart Auto EDGES list). Selecting a node pins the engine's scan to exactly
- * that /24 (EndpointMode.MANUAL_RANGE), so the engine still picks a LIVE
- * gateway inside the chosen neighbourhood — a single pinned IP would go dark
- * the moment that one host stops answering.
- *
- * [probeHost] is one representative address used for the live latency badge;
- * it is only a measuring target, never what the engine connects to.
- */
+/** One edge node for the server list. */
 data class ServerNode(
     val id: String,
     /** Display name shown in the picker (country label). */
@@ -31,17 +19,7 @@ data class ServerNode(
     val rangeSpec: String get() = cidrs.joinToString(", ")
 }
 
-/**
- * The internal server list. Deliberately small and curated: every entry is a
- * real, engine-supported edge range — nothing here is invented, so any node
- * the user picks is guaranteed to be scannable by the core.
- *
- * NAMING NOTE: Cloudflare edge ranges are anycast — every /24 below is served
- * from many datacenters at once and the actual exit country is decided by
- * network routing, not by the label. The country names reflect the region
- * where these ranges typically land for traffic routed through European
- * hubs; they are friendly labels, not a routing guarantee.
- */
+/** Built-in server list, in display order. */
 object ServerCatalog {
 
     /** Pinned port for latency probes. 443 is served by every listed edge. */

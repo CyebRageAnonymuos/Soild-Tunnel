@@ -157,6 +157,8 @@ data class ConnectionProfile(
     val noDataCheck: Boolean = false,
     /** Restrict TLS curve groups, e.g. "X25519:P-256" (engine `--tls-groups`). */
     val tlsGroups: String = "",
+    /** Override the ClientHello SNI for DPI bypass (engine `SOILDTUNNEL_SNI`). */
+    val customSni: String = "",
     /** Endpoint validation window, seconds; 0 = engine default. */
     val validateSecs: Int = 0,
     /** Delay between engine-level reconnects, seconds; 0 = engine default. */
@@ -363,6 +365,7 @@ data class ConnectionProfile(
         }
         if (noProfileRetry) put("SOILDTUNNEL_WG_NO_PROFILE_RETRY", "1")
         sanitizedTlsGroups()?.let { put("SOILDTUNNEL_TLS_GROUPS", it) }
+        customSni.trim().takeIf { it.isNotEmpty() }?.let { put("SOILDTUNNEL_SNI", it) }
         if (coreLogLevel != CoreLogLevel.WARN) put("SOILDTUNNEL_LOG_LEVEL", coreLogLevel.raw)
 
         //

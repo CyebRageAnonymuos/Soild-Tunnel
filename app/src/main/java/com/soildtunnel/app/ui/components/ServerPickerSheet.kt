@@ -68,17 +68,7 @@ import com.soildtunnel.app.ui.theme.NeonMint
 import com.soildtunnel.app.ui.theme.SheetGlass
 import com.soildtunnel.app.ui.theme.latencyColor
 
-/**
- * The server console — a bottom sheet listing every built-in edge node with
- * its LIVE latency badge.
- *
- * Selection writes straight into the connection profile: Auto clears any pin,
- * a named node pins the engine scan to that node's /24 (EndpointMode.MANUAL_RANGE),
- * so the core still picks a live gateway inside the chosen neighbourhood.
- *
- * A latency sweep starts automatically every time the sheet opens; results are
- * cached in [ServerPinger] so re-opening shows numbers instantly.
- */
+/** Server list bottom sheet with live ping badges. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServerPickerSheet(
@@ -93,7 +83,7 @@ fun ServerPickerSheet(
     val sweeping by ServerPinger.sweeping.collectAsState()
 
     // Measure as soon as the console opens — one parallel sweep, ~2.5s max.
-    LaunchedEffect(Unit) { ServerPinger.refreshAll() }
+    LaunchedEffect(Unit) { ServerPinger.maybeAutoRefresh() }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -143,7 +133,7 @@ fun ServerPickerSheet(
     }
 }
 
-// ------------------------------------------------------------------- rows
+// rows
 
 @Composable
 private fun ServerRow(
@@ -236,7 +226,7 @@ private fun ServerRow(
     }
 }
 
-/** Round glyph at the start of each row: bolt for Auto, node LED otherwise. */
+/** Round glyph: bolt for Auto, LED for regular nodes. */
 @Composable
 private fun NodeGlyph(isAuto: Boolean, selected: Boolean) {
     val tint = if (selected || isAuto) NeonMint else NeonCyan
@@ -260,10 +250,7 @@ private fun NodeGlyph(isAuto: Boolean, selected: Boolean) {
     }
 }
 
-/**
- * The live latency badge. States: measuring (breathing dots), unreachable
- * ("N/A" dim red), or the measured round-trip colour-coded mint/amber/red.
- */
+/** Live latency badge: measuring dots, N/A, or color-coded ms. */
 @Composable
 private fun PingBadge(nodeId: String) {
     val results by ServerPinger.state.collectAsState()

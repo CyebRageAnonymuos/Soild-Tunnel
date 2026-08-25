@@ -42,22 +42,12 @@ import kotlin.math.sin
 enum class ButtonMode { IDLE, BUSY, CONNECTED, ERROR }
 
 /**
- * The centrepiece action — CONTROL ROOM NEON "reactor core".
+ * Main action button.
  *
- * Layers, back to front:
- *
- * 1. HALO        — a soft radial bloom of the mode colour behind everything;
- * 2. RADAR TICKS — a static ring of 60 graduation ticks (every 5th one longer
- *                  and brighter), the mission-console dial around the core;
- * 3. TELEMETRY   — a thin dashed inner ring; while connecting a bright arc
- *                  travels it, while connected the whole stage breathes;
- * 4. DISC        — the tappable core: dark pool, neon rim, power glyph.
- *
- * PERFORMANCE CONTRACT (this app has history — see AmbientBackground): infinite
- * animations live inside [CoreHalo], [BusyArc] and [SpinningGlyph], each of
- * which is only COMPOSED while its state actually runs them. An idle or
- * errored core subscribes to zero frame callbacks; a connected one breathes
- * the halo only. Ticks and brackets are static draws that never invalidate.
+ * Layers back to front: halo, tick ring, telemetry ring (dashed + busy arc),
+ * corner brackets, tappable disc with icon. Animations are conditionally
+ * composed: idle = static, busy = spinning glyph + arc, connected = breathing
+ * halo, error = static red.
  */
 @Composable
 fun ConnectButton(
@@ -156,7 +146,7 @@ fun ConnectButton(
     }
 }
 
-// ------------------------------------------------------------------ layers
+// layers
 
 @Composable
 private fun CoreHalo(accent: Color, pulsing: Boolean) {
@@ -188,7 +178,7 @@ private fun DrawScope.drawHalo(accent: Color, scale: Float) {
     )
 }
 
-/** 60 graduations; every 5th is a long bright major tick. Static draw. */
+/** 60 ticks; every 5th is a long major tick. */
 private fun DrawScope.drawTickRing(accent: Color) {
     val stroke = 1.5.dp.toPx()
     val outer = size.minDimension / 2f
@@ -269,7 +259,7 @@ private fun SpinningGlyph(glyph: ImageVector, tint: Color) {
     )
 }
 
-// ------------------------------------------------------------------ tokens
+// tokens
 
 /** Mode colours, centralised so HomeScreen and this file stay in sync. */
 private object NeonTokens {

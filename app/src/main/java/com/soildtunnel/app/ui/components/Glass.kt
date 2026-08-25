@@ -40,21 +40,7 @@ import com.soildtunnel.app.ui.theme.NeonCyan
 import com.soildtunnel.app.ui.theme.PanelBottom
 import com.soildtunnel.app.ui.theme.PanelTop
 
-// ---------------------------------------------------------------------------
-// CONTROL ROOM NEON material system.
-//
-// Two surface recipes, one visual language:
-//
-//  [neonPanel]  — the console panel: translucent dark navy fill, a hairline
-//                 phosphor-cyan edge and a faint top sheen. Every card in the
-//                 app sits on this.
-//  [glassPane]  — the floating chip: translucent white fill + sheen + white
-//                 hairline, for small round controls (menu buttons, badges).
-//
-// Performance contract (unchanged since the liquid-glass rewrite): pure static
-// drawing — two gradient fills + one border per surface, no blur passes, no
-// RenderEffect, nothing that invalidates on its own.
-// ---------------------------------------------------------------------------
+// Surface material system: neonPanel (console panels), glassPane (floating chips).
 
 /** The console panel: dark translucent body + hairline neon edge. */
 fun Modifier.neonPanel(
@@ -77,7 +63,7 @@ fun Modifier.neonPanel(
     )
     .border(1.dp, edge, shape)
 
-/** Legacy glass pane (floating chips). Kept for the round top-bar controls. */
+/** Glass pane for floating chips (top-bar buttons). */
 fun Modifier.glassPane(
     shape: Shape,
     brightRim: Boolean = false,
@@ -127,12 +113,9 @@ fun GlassPanel(
 /** Small circular chip used behind standalone icons (top-bar buttons). */
 fun Modifier.glassChip(): Modifier = this.glassPane(RoundedCornerShape(50), brightRim = true)
 
-// ------------------------------------------------------------- decorations
+// decorations
 
-/**
- * Four corner brackets drawn just inside the bounds — the classic targeting /
- * HUD frame. Pure static draw; used on the power orb stage and hero cards.
- */
+/** Four corner bracket lines inside the bounds. */
 fun Modifier.neonBrackets(
     color: Color,
     length: Dp = 14.dp,

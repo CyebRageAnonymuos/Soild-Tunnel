@@ -398,7 +398,7 @@ pub async fn scan(
     match request.transport {
         Transport::Masque => {
             let probe = prober::MasqueProbe {
-                sni: consts::CONNECT_SNI.to_string(),
+                sni: consts::effective_sni(),
                 authority: quic::default_authority().to_string(),
                 path: quic::default_path().to_string(),
                 cert_pem: Arc::from(identity.cert_pem.clone()),

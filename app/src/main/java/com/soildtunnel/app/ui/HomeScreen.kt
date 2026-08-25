@@ -111,11 +111,6 @@ fun HomeScreen(
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val drawerScope = rememberCoroutineScope()
-    // UI-SPEED FIX: ModalNavigationDrawer composes its drawer content
-    // even while the drawer is CLOSED, so the diagnostics, share, advanced and
-    // about cards were live at all times — recomposing on every profile change
-    // and on every log line, behind a panel nobody was looking at. They are now
-    // only composed while the drawer is open or opening.
     val drawerVisible = drawerState.isOpen || drawerState.targetValue == DrawerValue.Open
 
     // Advanced settings, reachable directly from the home screen (top-right).
@@ -126,6 +121,10 @@ fun HomeScreen(
     var showServerSheet by remember { mutableStateOf(false) }
 
     val settingsEnabled = state is ConnectionState.Idle || state is ConnectionState.Error
+
+    // Kick off a background sweep when the screen first appears; TTL keeps
+    // it from hammering the network if data is still fresh.
+    LaunchedEffect(Unit) { ServerPinger.maybeAutoRefresh() }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -346,11 +345,6 @@ fun HomeScreen(
                     .navigationBarsPadding()
                     .padding(bottom = 32.dp),
             ) {
-                // UI-SPEED FIX: the advanced card is ~40 controls tall and
-                // used to be composed in the SAME frame the sheet starts its
-                // slide-in animation, so the sheet visibly stuttered on open.
-                // The first frame now shows the empty sheet (instant) and the
-                // controls are composed immediately afterwards.
                 var sheetReady by remember { mutableStateOf(false) }
                 LaunchedEffect(Unit) { sheetReady = true }
                 if (sheetReady) {
@@ -368,7 +362,7 @@ fun HomeScreen(
     }
 }
 
-// -------------------------------------------------------- server selector
+// server selector
 
 /**
  * The compact home-screen pill: SERVER label + current node codename + its

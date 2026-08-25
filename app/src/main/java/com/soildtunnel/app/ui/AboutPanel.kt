@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.soildtunnel.app.BuildConfig
 import com.soildtunnel.app.R
 
-private const val URL_PROJECT_GITHUB = "https://github.com/soildtunnel/SoildTunnel"
+private const val URL_PROJECT_GITHUB = "https://github.com/CyebRageAnonymuos/Soild-Tunnel"
 
 
 
@@ -107,12 +107,7 @@ fun AboutPanel(modifier: Modifier = Modifier) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    // Engine (core) version — same idea as the Windows edition's
-                    // About page, which shows app version AND core version so a
-                    // user can verify the bundled engine is current.
-                    // BuildConfig.CORE_VERSION is stamped at build time from
-                    // native/engine/CORE_VERSION, i.e. from whatever
-                    // scripts/sync-core.sh actually vendored for THIS build.
+                    // Engine (core) version from native/engine/CORE_VERSION.
                     Text(
                         text = stringResource(R.string.about_core_version, BuildConfig.CORE_VERSION),
                         style = MaterialTheme.typography.bodySmall,
@@ -126,7 +121,7 @@ fun AboutPanel(modifier: Modifier = Modifier) {
                         title = stringResource(R.string.about_license_title),
                         note = stringResource(R.string.about_license_note),
                     )
-                    LinkRow(R.drawable.ic_github, "github.com/soildtunnel/SoildTunnel", URL_PROJECT_GITHUB)
+                    LinkRow(R.drawable.ic_github, "CyebRageAnonymuos/Soild-Tunnel", URL_PROJECT_GITHUB)
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = "Released under the GNU AGPL v3. Built on open-source components.",

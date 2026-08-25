@@ -3,6 +3,15 @@ pub const API_VERSION: &str = "v0a4471";
 
 pub const CONNECT_SNI: &str = "consumer-masque.cloudflareclient.com";
 pub const L4_CONNECT_SNI: &str = "consumer-masque-proxy.cloudflareclient.com";
+
+/// SOILDTUNNEL_SNI overrides the ClientHello SNI for DPI bypass.
+/// Falls back to CONNECT_SNI when unset or empty.
+pub fn effective_sni() -> String {
+    std::env::var("SOILDTUNNEL_SNI")
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| CONNECT_SNI.to_string())
+}
 pub const CONNECT_URI: &str = "https://cloudflareaccess.com";
 
 pub const ECH_PUBLIC_NAME: &str = "cloudflare-ech.com";

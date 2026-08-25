@@ -66,6 +66,7 @@ class ProfileStore(private val context: Context) {
         val blockedApps = stringPreferencesKey("blockedApps")
         
         val upstreamProxy = stringPreferencesKey("upstreamProxy")
+        val customSni = stringPreferencesKey("customSni")
         val routeSniff = booleanPreferencesKey("routeSniff")
         val routeSniffMs = intPreferencesKey("routeSniffMs")
         val autoReprovision = booleanPreferencesKey("autoReprovision")
@@ -127,6 +128,7 @@ class ProfileStore(private val context: Context) {
             fragmentDelay = prefs[Keys.fragmentDelay] ?: "",
             noDataCheck = prefs[Keys.noDataCheck] ?: false,
             tlsGroups = prefs[Keys.tlsGroups] ?: "",
+            customSni = prefs[Keys.customSni] ?: "",
             validateSecs = prefs[Keys.validateSecs] ?: 0,
             reconnectSecs = prefs[Keys.reconnectSecs] ?: 0,
             noProfileRetry = prefs[Keys.noProfileRetry] ?: false,
@@ -177,6 +179,7 @@ class ProfileStore(private val context: Context) {
             prefs[Keys.fragmentDelay] = profile.fragmentDelay
             prefs[Keys.noDataCheck] = profile.noDataCheck
             prefs[Keys.tlsGroups] = profile.tlsGroups
+            prefs[Keys.customSni] = profile.customSni
             prefs[Keys.validateSecs] = profile.validateSecs
             prefs[Keys.reconnectSecs] = profile.reconnectSecs
             prefs[Keys.noProfileRetry] = profile.noProfileRetry

@@ -85,28 +85,8 @@ import com.soildtunnel.app.ui.theme.NeonMint
 import com.soildtunnel.app.ui.theme.NeonRed
 import com.soildtunnel.app.ui.theme.NeonViolet
 
-/**
- * THE telemetry console — bottom block of the home screen.
- *
- * One cohesive control-room console instead of a pile of floating surfaces,
- * with a fixed vertical hierarchy:
- *
- *  0. header        ("TELEMETRY" label + status LED)
- *  1. status        (large state word in the mode accent)
- *  2. session timer ("CONNECTED FOR" + HH:MM:SS in a mono face)
- *  3. server IP pill(label + country flag + address)
- *  4. speed strip   (live down/up rate and session totals)
- *  5. meta strip    (Protocol | Endpoint | Latency, three equal columns)
- *
- * While connected, the console edge carries the travelling equaliser light
- * show (cyan → mint → violet bands). Implementation notes, because this app
- * has a history of animations eating the frame budget (see AmbientBackground):
- *  - ONE closed path, measured once per size change and cached;
- *  - animation state is read inside the draw lambda, so a frame costs a border
- *    redraw only — never a recomposition of the card;
- *  - the infinite transition is composed ONLY while connected;
- *  - each band is three strokes (halo, mid, core) in additive blend.
- */
+/** Telemetry console — state, timer, IP, speeds, protocol info.
+ *  Edge glow animates only while connected. */
 @Composable
 fun ConnectionCard(
     connected: Boolean,
@@ -150,7 +130,7 @@ fun ConnectionCard(
     }
 }
 
-// --------------------------------------------------------------- 0. header
+// 0. header
 
 @Composable
 private fun ConsoleHeader(connected: Boolean, error: Boolean) {
@@ -179,7 +159,7 @@ private fun ConsoleHeader(connected: Boolean, error: Boolean) {
     }
 }
 
-// --------------------------------------------------------------- 1. status
+// 1. status
 
 @Composable
 private fun StatusBlock(title: String, caption: String, accent: Color) {
@@ -215,7 +195,7 @@ private fun StatusBlock(title: String, caption: String, accent: Color) {
     }
 }
 
-// ---------------------------------------------------------------- 2. timer
+// 2. timer
 
 @Composable
 private fun TimerBlock(connectedSince: Long?, connected: Boolean) {
@@ -264,7 +244,7 @@ private fun TimerBlock(connectedSince: Long?, connected: Boolean) {
     }
 }
 
-// ------------------------------------------------------------ 3. server IP
+// 3. server IP
 
 @Composable
 private fun ServerIpPill(connected: Boolean, ipInfo: IpEndpoint?, ipLoading: Boolean) {
@@ -307,7 +287,7 @@ private fun ServerIpPill(connected: Boolean, ipInfo: IpEndpoint?, ipLoading: Boo
     }
 }
 
-// --------------------------------------------------------------- 4. speeds
+// 4. speeds
 
 @Composable
 private fun SpeedStrip(connectedSince: Long?, connected: Boolean) {
@@ -388,7 +368,7 @@ private fun SpeedCell(
     }
 }
 
-// ------------------------------------------------------------- 5. protocol
+// 5. protocol
 
 @Composable
 private fun ProtocolStrip(connected: Boolean) {
@@ -471,7 +451,7 @@ private fun CellDivider() {
     )
 }
 
-// ------------------------------------------------------------ traffic feed
+// traffic feed
 
 /** Instantaneous rates + session totals, polled once per second. */
 private data class TrafficStats(
@@ -481,18 +461,6 @@ private data class TrafficStats(
     val upTotal: Long = 0L,
 )
 
-/**
- * Sums BOTH possible traffic paths so the meter works in every mode:
- *  - hev-socks5-tunnel's direction-corrected counters (system-VPN mode; null in
- * proxy mode, where there is no TUN),
- *  - ShareBridge: bytes relayed through the local SOCKS5/HTTP listeners (the
- * only source in proxy mode, plus LAN clients in system-VPN mode).
- *
- * Rates come from deltas against a monotonic clock, so a wall-clock jump cannot
- * invent a spike. A negative delta (core restart during auto-reconnect, or a
- * fresh sharing session resetting the bridge counters) is clamped to zero and
- * the baseline rebases itself.
- */
 @Composable
 private fun rememberTrafficStats(connectedSince: Long?, connected: Boolean): TrafficStats {
     var stats by remember(connectedSince) { mutableStateOf(TrafficStats()) }
@@ -528,7 +496,7 @@ private fun rememberTrafficStats(connectedSince: Long?, connected: Boolean): Tra
     return stats
 }
 
-// ------------------------------------------------------- the animated edge
+// the animated edge
 
 /** The two animated states of the border light show. */
 private class GlowPulse(val phase: State<Float>, val breath: State<Float>)
@@ -559,12 +527,7 @@ private fun rememberGlowPulse(): GlowPulse {
     return remember(phase, breath) { GlowPulse(phase, breath) }
 }
 
-/**
- * One equaliser band: where it sits on the perimeter, how long it is, and which
- * harmonic of the travel phase drives its intensity. The harmonics are WHOLE
- * numbers on purpose - a fractional one would jump when the phase wraps from 1
- * back to 0 and the whole edge would visibly stutter once per cycle.
- */
+/** One equaliser band on the edge. */
 private class GlowBand(
     val offset: Float,
     val span: Float,
@@ -584,10 +547,7 @@ private val GLOW_BANDS = listOf(
     GlowBand(offset = 0.85f, span = 0.12f, harmonic = 2, skew = 0.50f, tint = 0.05f),
 )
 
-/**
- * The console edge: a soft inner glow, a hairline neon border, and - while
- * connected - the travelling equaliser light.
- */
+/** Console edge glow. */
 private fun Modifier.glassEdge(accent: Color, pulse: GlowPulse?): Modifier = drawWithCache {
     val hairline = 1.dp.toPx()
     val inset = hairline / 2f
@@ -655,7 +615,7 @@ private fun DrawScope.drawGlowStroke(path: Path, colour: Color, alpha: Float, wi
     )
 }
 
-/** Copies a piece of the perimeter, wrapping around the corner if it overruns. */
+/** Copy perimeter segment, wrapping at corners. */
 private fun PathMeasure.appendSegment(dst: Path, start: Float, length: Float, perimeter: Float) {
     val end = start + length
     if (end <= perimeter) {
@@ -666,7 +626,7 @@ private fun PathMeasure.appendSegment(dst: Path, start: Float, length: Float, pe
     }
 }
 
-/** The 1px low-opacity neon rim shared by every sub-container in the console. */
+/** 1px low-opacity neon rim for sub-containers. */
 private fun Modifier.subEdge(shape: CornerBasedShape): Modifier = drawWithCache {
     val hairline = 1.dp.toPx()
     val inset = hairline / 2f
@@ -684,7 +644,7 @@ private fun Modifier.subEdge(shape: CornerBasedShape): Modifier = drawWithCache 
     }
 }
 
-// ---------------------------------------------------------------- helpers
+// helpers
 
 private fun formatBytes(v: Long): String {
     if (v < 1024L) return "$v B"
