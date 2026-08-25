@@ -11,7 +11,6 @@
 # docs/ paths are accepted.
 
 # --- in-app updater (removed in 1.2.2: the app no longer downloads APKs) ---
-app/src/main/java/com/soildtunnel/app/core/UpdateChecker.kt
 app/src/main/java/com/soildtunnel/app/core/UpdateInstaller.kt
 app/src/main/java/com/soildtunnel/app/core/UpdateDownloader.kt
 app/src/main/java/com/soildtunnel/app/ui/components/UpdatePrompt.kt
