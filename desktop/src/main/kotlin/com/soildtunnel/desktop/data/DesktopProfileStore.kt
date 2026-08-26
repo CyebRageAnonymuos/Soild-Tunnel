@@ -99,20 +99,20 @@ class DesktopProfileStore {
         fun bool(key: String, def: Boolean): Boolean =
             props.getProperty(key)?.toBooleanStrictOrNull() ?: def
         fun int(key: String, def: Int): Int = props.getProperty(key)?.toIntOrNull() ?: def
-        inline fun <reified T : Enum<T>> en(key: String, def: T): T =
-            props.getProperty(key)?.let { runCatching { enumValueOf<T>(it) }.getOrNull() } ?: def
+        fun <T : Enum<T>> en(key: String, def: T, clazz: Class<T>): T =
+            props.getProperty(key)?.let { v -> clazz.enumConstants?.find { it.name.equals(v, true) } } ?: def
         fun list(key: String): List<String> =
             str(key, "").split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
         return ConnectionProfile(
-            protocol = en("protocol", Protocol.AUTO),
-            scanMode = en("scan", ScanMode.BALANCED),
-            ipVersion = en("ip", IpVersion.V4),
+            protocol = en("protocol", Protocol.AUTO, Protocol::class.java),
+            scanMode = en("scan", ScanMode.BALANCED, ScanMode::class.java),
+            ipVersion = en("ip", IpVersion.V4, IpVersion::class.java),
             quickReconnect = bool("quick", true),
             masqueHttp2 = bool("h2", false),
             lanShare = bool("share", false),
-            noize = en("noize", Noize.OFF),
-            endpointMode = en("endpoint", EndpointMode.AUTO),
+            noize = en("noize", Noize.OFF, Noize::class.java),
+            endpointMode = en("endpoint", EndpointMode.AUTO, EndpointMode::class.java),
             manualPeer = str("peer", ""),
             manualRange = str("range", ""),
             keepalive = int("keepalive", 0),
@@ -120,13 +120,13 @@ class DesktopProfileStore {
             ech = bool("ech", false),
             mtu = int("mtu", ConnectionProfile.DEFAULT_MTU),
             proxyMode = bool("proxy", false),
-            splitMode = en("split", SplitMode.OFF),
+            splitMode = en("split", SplitMode.OFF, SplitMode::class.java),
             splitApps = list("splitApps"),
             dnsServers = str("dns", ""),
-            dnsMode = en("dnsMode", DnsMode.PLAIN),
+            dnsMode = en("dnsMode", DnsMode.PLAIN, DnsMode::class.java),
             encryptedDnsEndpoint = str("encryptedDnsEndpoint", ""),
             team = str("team", ""),
-            teamAuth = en("teamAuth", TeamAuth.OFF),
+            teamAuth = en("teamAuth", TeamAuth.OFF, TeamAuth::class.java),
             accessClientId = str("accessId", ""),
             accessClientSecret = str("accessSecret", ""),
             accessEmail = str("accessEmail", ""),
@@ -147,7 +147,7 @@ class DesktopProfileStore {
             validateSecs = int("validateSecs", 0),
             reconnectSecs = int("reconnectSecs", 0),
             noProfileRetry = bool("noProfileRetry", false),
-            coreLogLevel = en("coreLogLevel", CoreLogLevel.WARN),
+            coreLogLevel = en("coreLogLevel", CoreLogLevel.WARN, CoreLogLevel::class.java),
             blockedApps = list("blockedApps"),
             upstreamProxy = str("upstreamProxy", ""),
             routeSniff = bool("routeSniff", true),
