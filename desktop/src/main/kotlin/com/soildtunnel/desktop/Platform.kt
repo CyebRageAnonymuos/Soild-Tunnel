@@ -27,6 +27,8 @@ object Paths {
         val candidates = sequenceOf(
             File(System.getProperty("compose.application.dir"), name),
             File(System.getProperty("user.dir"), name),
+            File("/usr/lib/soildtunnel", name),
+            File("/opt/soildtunnel/lib", name),
             File(workDir, name),
         )
         return candidates.firstOrNull { it.isFile } ?: File(workDir, name)
@@ -38,6 +40,7 @@ object Paths {
             File(System.getProperty("compose.application.dir"), name),
             File(System.getProperty("user.dir"), name),
             File("/usr/lib/soildtunnel", name),
+            File("/opt/soildtunnel/lib", name),
         )
         val found = candidates.firstOrNull { it.isFile && it.canExecute() }
         return found

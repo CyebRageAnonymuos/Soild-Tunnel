@@ -44,13 +44,45 @@ EOF
 chmod +x "$BUNDLE/soildtunnel.sh" "$BUNDLE/soildtunnel-core" \
 	"$BUNDLE/hev-socks5-tunnel" "$BUNDLE/hev-tun-helper"
 
-# Copy natives into the AppImage payload so pkexec finds them.
+# Copy natives into the AppImage payload so the engine can be found.
 if [ -n "${APP_IMAGE_DIR:-}" ] && [ -d "$APP_IMAGE_DIR/bin" ]; then
 	cp "$OUT/soildtunnel-core" "$OUT/hev-socks5-tunnel" \
 		"$OUT/hev-tun-helper" "$APP_IMAGE_DIR/bin/"
 	chmod 0755 "$APP_IMAGE_DIR/bin/hev-socks5-tunnel" \
 		"$APP_IMAGE_DIR/bin/hev-tun-helper" \
 		"$APP_IMAGE_DIR/bin/soildtunnel-core"
+fi
+
+# 4. Patch the deb: extract, inject natives + postinst, repack
+DEB_SRC=$(find "$ROOT/desktop/build/compose/binaries" -name "*.deb" | head -1 || true)
+if [ -n "$DEB_SRC" ]; then
+	echo "== patching deb with native binaries =="
+	DEB_WORK=$(mktemp -d)
+	trap 'rm -rf "$DEB_WORK"' EXIT
+	dpkg-deb -R "$DEB_SRC" "$DEB_WORK"
+
+	# Create /usr/lib/soildtunnel/ for native binaries
+	mkdir -p "$DEB_WORK/usr/lib/soildtunnel"
+	cp "$OUT/soildtunnel-core"   "$DEB_WORK/usr/lib/soildtunnel/"
+	cp "$OUT/hev-socks5-tunnel"  "$DEB_WORK/usr/lib/soildtunnel/"
+	install -m 0755 "$OUT/hev-tun-helper" "$DEB_WORK/usr/lib/soildtunnel/hev-tun-helper"
+
+	# Symlink /usr/bin/soildtunnel -> /opt/soildtunnel/bin/soildtunnel
+	mkdir -p "$DEB_WORK/usr/bin"
+	ln -sf /opt/soildtunnel/bin/soildtunnel "$DEB_WORK/usr/bin/soildtunnel"
+
+	# postinst: set exec perms on native binaries
+	mkdir -p "$DEB_WORK/DEBIAN"
+	cat > "$DEB_WORK/DEBIAN/postinst" <<'POSTINST'
+#!/bin/sh
+set -e
+chmod 0755 /usr/lib/soildtunnel/soildtunnel-core
+chmod 0755 /usr/lib/soildtunnel/hev-socks5-tunnel
+chmod 0755 /usr/lib/soildtunnel/hev-tun-helper
+POSTINST
+	chmod 0755 "$DEB_WORK/DEBIAN/postinst"
+
+	dpkg-deb -b "$DEB_WORK" "$OUT/soildtunnel_1.0.3_amd64.deb"
 fi
 
 tar -czf "$OUT/SoildTunnel-1.0.3-linux-x64.tar.gz" -C "$(dirname "$BUNDLE")" "$(basename "$BUNDLE")"
