@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SoildTunnel</string>
+    <string name="tagline">Freedom, in one tap</string>
+
+    <string name="advanced">Advanced settings</string>
+
+    <string name="protocol">Protocol</string>
+    <string name="protocol_auto">Smart</string>
+    <string name="protocol_masque">MASQUE</string>
+    <string name="protocol_wireguard">WireGuard</string>
+    <string name="protocol_gool">WARP×2</string>
+
+    <string name="scan_mode">Scan mode</string>
+    <string name="scan_turbo">Turbo</string>
+    <string name="scan_balanced">Balanced</string>
+    <string name="scan_thorough">Thorough</string>
+    <string name="scan_stealth">Stealth</string>
+    <string name="scan_ironclad">Ironclad</string>
+
+    <string name="ip_version">IP version</string>
+    <string name="ip_v4">IPv4</string>
+    <string name="ip_v6">IPv6</string>
+    <string name="ip_both">Both</string>
+
+    <string name="quick_reconnect">Quick reconnect</string>
+    <string name="quick_reconnect_desc">Reconnect faster after a drop</string>
+    <string name="masque_http2">MASQUE over HTTP/2</string>
+    <string name="masque_http2_desc">Use HTTP/2 for the MASQUE transport</string>
+
+    <string name="state_idle">Disconnected</string>
+    <string name="state_launching">Starting engine…</string>
+    <string name="state_connecting">Connecting…</string>
+    <string name="state_connected">Connected</string>
+    <string name="state_reconnecting">Reconnecting…</string>
+    <string name="state_disconnecting">Disconnecting…</string>
+    <string name="state_error">Connection failed</string>
+
+    <string name="tap_to_connect">Tap to connect securely</string>
+    <string name="tap_to_disconnect">Tap to disconnect</string>
+    <string name="secure_via">Secure tunnel via %1$s</string>
+    <string name="reconnect_attempt">Attempt %1$d of %2$d</string>
+
+    <string name="notif_channel">VPN status</string>
+    <string name="notif_channel_desc">Shows the SoildTunnel connection status</string>
+    <string name="notif_title">SoildTunnel</string>
+
+    <string name="err_engine_timeout">The engine did not open the local proxy in time.</string>
+    <string name="err_engine_died">The engine stopped unexpectedly.</string>
+    <string name="err_proxy_ports">Could not open the local proxy ports — they may already be in use by another app.</string>
+
+    <!-- Connection meta: IP + flag + timer -->
+    <string name="ip_your_label">Your IP</string>
+    <string name="ip_server_label">Server IP</string>
+    <string name="ip_checking">Checking IP…</string>
+    <string name="ip_unavailable">IP unavailable</string>
+    <string name="connected_for">Connected for</string>
+
+    <!-- Diagnostics panel -->
+    <string name="diag_title">Diagnostics &amp; logs</string>
+    <string name="diag_subtitle">Live status of every part of the tunnel</string>
+    <string name="diag_run">Run test</string>
+    <string name="diag_copy">Copy logs</string>
+    <string name="diag_clear">Clear</string>
+    <string name="diag_copied">Logs copied to clipboard</string>
+    <string name="diag_all_ok">All checks passed — traffic should flow</string>
+    <string name="diag_problem">A problem was detected — see the failing check</string>
+    <string name="diag_idle">Run the test to verify connectivity</string>
+    <string name="diag_empty_logs">No logs yet. Connect or run a test.</string>
+
+    <!-- About panel -->
+    <string name="about_title">About</string>
+    <string name="about_subtitle">Credits, links &amp; what this build adds</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_license_title">Open Source</string>
+    <string name="about_license_note">AGPL v3 — source code available on GitHub</string>
+    <string name="menu_open">Open menu</string>
+    <string name="advanced_open">Open advanced settings</string>
+
+    <!-- Quick Settings tile -->
+    <string name="qs_tile_label">SoildTunnel</string>
+
+    <!-- Share VPN panel -->
+    <string name="share_title">Share VPN</string>
+    <string name="share_subtitle">Use this phone as a proxy for your laptop or another phone</string>
+    <string name="share_toggle">Share on this network</string>
+    <string name="share_toggle_desc">Opens a local proxy that devices on the same Wi‑Fi or hotspot can use</string>
+    <string name="share_http_label">HTTP proxy — enter in system proxy settings</string>
+    <string name="share_socks_label">SOCKS5 proxy — for apps that support SOCKS</string>
+    <string name="share_copy">Copy address</string>
+    <string name="share_copied">Address copied</string>
+    <string name="share_need_connect">Connect the VPN first — sharing routes other devices through this phone’s tunnel.</string>
+    <string name="share_starting">Starting sharing… if this takes more than a few seconds, toggle the switch off and on again.</string>
+    <string name="share_need_wifi">Join a Wi‑Fi network or turn on your hotspot to share.</string>
+    <string name="share_howto">On the other device (same network), open its proxy settings and enter one of these addresses:</string>
+    <string name="share_warning">While sharing is on, anyone on this network can use the proxy. Use only on trusted networks.</string>
+
+    <string name="traffic_download">Download</string>
+    <string name="traffic_upload">Upload</string>
+    <string name="traffic_total">Total %1$s</string>
+
+    <!-- Obfuscation (Amnezia) -->
+    <string name="noize_title">Obfuscation (Amnezia)</string>
+    <string name="noize_desc">Inject junk + fake handshakes so DPI can\u2019t fingerprint the tunnel</string>
+    <string name="noize_off">Off</string>
+    <string name="noize_light">Light</string>
+    <string name="noize_firewall">Firewall</string>
+    <string name="noize_balanced">Balanced</string>
+    <string name="noize_gfw">GFW</string>
+    <string name="noize_aggressive">Aggressive</string>
+
+    <!-- Endpoint selection / manual range -->
+    <string name="endpoint_mode">Endpoint</string>
+    <string name="endpoint_auto">Auto scan</string>
+    <string name="endpoint_peer">Manual IP</string>
+    <string name="endpoint_range">Custom range</string>
+    <string name="manual_peer_label">Endpoint (ip:port)</string>
+    <string name="manual_peer_hint">e.g. 162.159.192.1:443</string>
+    <string name="manual_range_label">IP range(s) to scan</string>
+    <string name="manual_range_hint">e.g. 8.6.112.0/24, 188.114.96.0/24</string>
+    <string name="manual_range_help">The engine scans ONLY the range(s) you type. Accepts 8.6.112.x, 8.6.112.0/24, or a single IP. Separate multiple ranges with commas.</string>
+
+    <!-- Transport tuning -->
+    <string name="keepalive_label">Keepalive (sec)</string>
+    <string name="keepalive_default">Default</string>
+    <string name="fragment_title">TLS fragmentation</string>
+    <string name="fragment_desc">Split the TLS handshake to slip past DPI</string>
+    <string name="ech_title">Encrypted Client Hello</string>
+    <string name="ech_desc">Hide the destination name (SNI) from DPI</string>
+    <string name="mtu_label">MTU</string>
+    <string name="mtu_desc">Lower values (1280) are safer on mobile data</string>
+
+    <!-- Proxy mode + split tunneling -->
+    <string name="proxy_mode_title">Proxy mode (no system VPN)</string>
+    <string name="proxy_mode_desc">Run a local SOCKS5/HTTP proxy instead of routing the whole device</string>
+    <string name="proxy_endpoints_hint">Fixed addresses — enter one of these in the other app\'s proxy settings:</string>
+    <string name="proxy_socks_label">SOCKS5 proxy</string>
+    <string name="proxy_http_label">HTTP proxy</string>
+    <string name="split_mode">Split tunneling</string>
+    <string name="split_off">Off</string>
+    <string name="split_include">Only selected</string>
+    <string name="split_exclude">Except selected</string>
+    <string name="split_select_apps">Choose apps (%1$d)</string>
+    <string name="apps_dialog_title">Select apps</string>
+    <string name="apps_search_hint">Search apps</string>
+    <string name="apps_done">Done</string>
+    <string name="apps_loading">Loading apps\u2026</string>
+    <string name="section_transport">Transport &amp; anti-DPI</string>
+    <string name="section_routing">Routing</string>
+
+    <!-- Readiness gating + settings reset -->
+    <string name="state_verifying">Verifying connection…</string>
+    <string name="state_analyzing">Analyzing your network (Smart mode)…</string>
+    <string name="err_auto_failed">Smart mode tried every strategy, but none could connect on this network. Try picking a protocol manually.</string>
+    <string name="err_protocol_failed">This protocol could not connect on this network, even with obfuscation. Try Smart mode or another protocol.</string>
+    <string name="err_selftest">Tunnel started, but the end-to-end self-test failed. Please try again.</string>
+    <string name="section_reset">Reset</string>
+    <string name="reset_settings">Reset all settings to defaults</string>
+    <string name="reset_done">Settings restored to defaults</string>
+
+    <!-- In-app update checker -->
+    <string name="update_available">Update available</string>
+    <string name="update_version">v%1$s</string>
+    <string name="update_dismiss">Dismiss</string>
+
+    <!-- Language selector -->
+    <string name="lang_title">Language</string>
+    <string name="lang_system">System default</string>
+
+    <!-- Usage history -->
+    <string name="usage_title">Data usage</string>
+    <string name="usage_today">Today: %1$s</string>
+    <string name="usage_today_down">Today download</string>
+    <string name="usage_today_up">Today upload</string>
+    <string name="usage_recent">Recent sessions</string>
+    <string name="usage_empty">No sessions recorded yet.</string>
+
+
+
+    <!-- About: engine/core version (parity with the Windows edition) -->
+    <string name="about_core_version">Engine (core) version %1$s</string>
+
+    <!-- Engine feature strings -->
+    <string name="section_zerotrust">Zero Trust (organization)</string>
+    <string name="team_auth_label">Enrolment method</string>
+    <string name="team_auth_off">Off</string>
+    <string name="team_auth_service">Service token</string>
+    <string name="team_auth_email">E-mail code</string>
+    <string name="team_auth_token">Enrolment token</string>
+    <string name="team_auth_desc">Join a Cloudflare Zero Trust organization instead of consumer WARP. Leave off for normal use.</string>
+    <string name="team_label">Team name</string>
+    <string name="team_hint">acme</string>
+    <string name="team_help">Just the name — acme means acme.cloudflareaccess.com.</string>
+    <string name="access_id_label">Client ID</string>
+    <string name="access_secret_label">Client secret</string>
+    <string name="access_email_label">Work e-mail</string>
+    <string name="access_token_label">Enrolment token</string>
+    <string name="access_secret_help">Stored encrypted with a hardware-backed key and passed to the engine out of band, never on the command line.</string>
+    <string name="gateway_title">Use organization Gateway</string>
+    <string name="gateway_desc">Sends HTTP/HTTPS through your organization\'s filtering proxy. Adds a hop and lets the organization log your browsing — off unless required.</string>
+
+    <string name="section_routes">Routing rules</string>
+    <string name="route_block_label">Never connect (block)</string>
+    <string name="route_block_hint">ads.example.com, port:25</string>
+    <string name="route_direct_label">Bypass tunnel (direct)</string>
+    <string name="route_direct_hint">private, bank.example.com</string>
+    <string name="routes_help">Comma separated. Supports example.com, full:, keyword:, regexp:, 10.0.0.0/8, port:25 and private. Block is checked first, then direct.</string>
+
+    <string name="dns_label">DNS inside the tunnel</string>
+    <string name="dns_hint">1.1.1.1, 1.0.0.1</string>
+    <string name="dns_help">Leave empty for the engine default (1.1.1.1, 1.0.0.1). Invalid entries are ignored.</string>
+    <!-- Encrypted DNS (DoH / DoT) -->
+    <string name="enc_dns_plain">Plain</string>
+    <string name="enc_dns_doh">DoH</string>
+    <string name="enc_dns_dot">DoT</string>
+    <string name="enc_dns_endpoint_label">Custom endpoint (optional)</string>
+    <string name="enc_dns_endpoint_hint">https://cloudflare-dns.com/dns-query</string>
+    <string name="enc_dns_endpoint_help">DoH: full https:// URL. DoT: host or host:port (default port 853). Empty = Cloudflare default.</string>
+    <!-- Feature merge: home-screen widget, onboarding, ping, crash report -->
+    <string name="widget_desc">Connect or disconnect SoildTunnel with one tap</string>
+    <string name="widget_toggle_desc">Toggle connection</string>
+    <string name="ping_label">Ping</string>
+    <string name="ping_measuring">Measuring…</string>
+    <string name="ping_unavailable">N/A</string>
+    <string name="ping_hint">Tap to measure again</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_title_1">Welcome to SoildTunnel</string>
+    <string name="onboarding_body_1">A fast, secure tunnel that beats censorship. One tap connects you through MASQUE, WireGuard or WARP×2.</string>
+    <string name="onboarding_title_2">Smart protocol selection</string>
+    <string name="onboarding_body_2">Smart mode analyzes your network and picks the protocol that actually works, with anti-DPI obfuscation when needed.</string>
+    <string name="onboarding_title_3">Private by design</string>
+    <string name="onboarding_body_3">No accounts, no logs, no trackers. Android will ask for VPN permission on your first connect; that is the system keeping you in control.</string>
+    <string name="crash_title">SoildTunnel stopped unexpectedly</string>
+    <string name="crash_subtitle">The details below were saved by the crash handler. You can copy them into a bug report.</string>
+    <string name="crash_copy">Copy details</string>
+    <string name="crash_copied">Copied</string>
+    <string name="crash_dismiss">Dismiss</string>
+    <string name="section_security">Security &amp; stability</string>
+    <string name="kill_switch_title">Kill Switch</string>
+    <string name="kill_switch_desc">Block all traffic if the tunnel drops unexpectedly, so nothing leaks outside the VPN</string>
+    <string name="strict_kill_switch_title">Strict Kill Switch</string>
+    <string name="strict_kill_switch_desc">Keep blocking even after a manual disconnect, until you lift it</string>
+    <string name="state_killswitch">Kill switch active - traffic blocked</string>
+    <string name="ipv6_leak_title">IPv6 Leak Protection</string>
+    <string name="ipv6_leak_desc">Route IPv6 traffic through the tunnel as well</string>
+    <string name="smart_reconnect_title">Smart Reconnect</string>
+    <string name="smart_reconnect_desc">Stop and report an error after a limited number of failed restarts</string>
+    <string name="reconnect_limit_label">Max reconnect attempts</string>
+    <string name="section_engine_tuning">Engine tuning</string>
+    <string name="fragment_size_label">Fragment size range</string>
+    <string name="fragment_size_hint">16-32</string>
+    <string name="fragment_delay_label">Fragment delay range (ms)</string>
+    <string name="fragment_delay_hint">2-10</string>
+    <string name="no_data_check_title">No Data Check</string>
+    <string name="no_data_check_desc">Skip the engine\'s end-to-end data probe after connecting</string>
+    <string name="tls_groups_label">TLS groups</string>
+    <string name="tls_groups_hint">X25519:P-256</string>
+    <string name="custom_sni_label">SNI spoof (anti-DPI)</string>
+    <string name="custom_sni_hint">consumer-masque.cloudflareclient.com</string>
+    <string name="custom_sni_desc">Override the TLS ClientHello SNI to bypass DPI. Empty = default.</string>
+    <string name="validate_secs_label">Validate seconds (0 = default)</string>
+    <string name="reconnect_secs_label">Reconnect seconds (0 = default)</string>
+    <string name="secs_hint">0</string>
+    <string name="no_profile_retry_title">No Profile Retry</string>
+    <string name="no_profile_retry_desc">Do not fall back to alternate WireGuard profiles</string>
+    <string name="core_log_level_label">Core log level</string>
+    <string name="blocked_select_apps">Blocked apps (%1$d)</string>
+    <string name="blocked_apps_desc">Blocked apps get no internet at all while the VPN is on. Activates the built-in filter bridge.</string>
+    <!-- Info row under the IP badge -->
+    <string name="meta_protocol">Protocol</string>
+    <string name="meta_endpoint">Endpoint</string>
+    <string name="meta_latency">Latency</string>
+
+    <string name="route_sniff_title">Match domain rules behind the tunnel</string>
+    <string name="route_sniff_desc">Reads the site name from the TLS/HTTP handshake, so the domain rules above also work on Android, where the engine otherwise only sees an IP address.</string>
+    <string name="route_sniff_ms_label">Name wait window (ms)</string>
+    <string name="route_sniff_ms_hint">400</string>
+    <string name="section_upstream">Upstream proxy (chaining)</string>
+    <string name="upstream_label">Upstream proxy</string>
+    <string name="upstream_hint">socks5://127.0.0.1:1080</string>
+    <string name="upstream_help">Dials out through a proxy already running on this phone. socks5://host:port carries every protocol; http://host:port only carries MASQUE over HTTP/2, which is switched on for you. Credentials may be included as user:pass@host:port and are passed to the engine privately, never on its command line. Leave empty to connect directly.</string>
+    <string name="reprovision_title">Replace a refused identity</string>
+    <string name="reprovision_desc">If Cloudflare stops accepting the saved device identity, register a fresh one automatically instead of holding a tunnel that connects but carries no traffic.</string>
+
+    <!-- Control Room console -->
+    <string name="console_label">Telemetry</string>
+
+    <!-- Server picker -->
+    <string name="server_title">Server</string>
+    <string name="server_pick_title">Select server</string>
+    <string name="server_pick_subtitle">Live latency measured from this device. Tap a node to pin it.</string>
+    <string name="server_auto_desc">Scan every built-in edge range, keep the fastest live gateway</string>
+    <string name="server_selected">Selected</string>
+    <string name="server_ping_refresh">Re-measure latency</string>
+    <string name="server_ping_ms">%1$d ms</string>
+    <string name="ping_measuring_short">···</string>
+    <string name="endpoint_range_custom_short">Custom</string>
+</resources>

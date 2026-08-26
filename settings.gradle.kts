@@ -59,3 +59,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "SoildTunnel"
 include(":app")
+include(":desktop")

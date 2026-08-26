@@ -1,0 +1,78 @@
+name: Build Linux
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "desktop/**"
+      - "native/engine/**"
+      - "tun/**"
+      - "scripts/build-linux.sh"
+      - ".github/workflows/build-linux.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install pkg deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y file gcc make git
+
+      - name: Build engine + helper + app
+        run: bash scripts/build-linux.sh
+
+      - name: Rename artifacts
+        id: names
+        run: |
+          D=desktop/dist
+          ls -la $D
+          # AppImage produced by compose into binaries dir
+          APPIMAGE=$(find desktop/build/compose/binaries -name "*.AppImage" | head -1 || true)
+          if [ -n "$APPIMAGE" ]; then
+            cp "$APPIMAGE" "$D/SoildTunnel-1.0.3-linux-x64.AppImage"
+          fi
+          DEB=$(find desktop/build/compose/binaries -name "*.deb" | head -1 || true)
+          if [ -n "$DEB" ]; then
+            cp "$DEB" "$D/soildtunnel_1.0.3_amd64.deb"
+          fi
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.3-linux-build.1
+          name: SoildTunnel v1.0.3 for Linux
+          body: |
+            # SoildTunnel for Linux
+
+            First Linux build. Identical Control Room Neon UI.
+
+            - **Engine** - the same Rust core as Android (MASQUE / WireGuard / Smart Auto).
+            - **UI** - Compose Multiplatform port of the Android interface.
+            - **System-wide VPN** - optional TUN helper via pkexec; without it the app runs in proxy mode.
+            - Formats: AppImage (universal), deb (Debian/Ubuntu), tar.gz (any distro with Java 17+).
+          files: |
+            desktop/dist/SoildTunnel-1.0.3-linux-x64.AppImage
+            desktop/dist/soildtunnel_1.0.3_amd64.deb
+            desktop/dist/SoildTunnel-1.0.3-linux-x64.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
