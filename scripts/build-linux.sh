@@ -67,6 +67,14 @@ if [ -n "$DEB_SRC" ]; then
 	cp "$OUT/hev-socks5-tunnel"  "$DEB_WORK/usr/lib/soildtunnel/"
 	install -m 0755 "$OUT/hev-tun-helper" "$DEB_WORK/usr/lib/soildtunnel/hev-tun-helper"
 
+	# Also copy into the app bin dir so compose.application.dir finds them
+	APP_BIN=$(find "$DEB_WORK/opt" -type d -name "bin" | head -1 || true)
+	if [ -n "$APP_BIN" ]; then
+		cp "$OUT/soildtunnel-core"  "$APP_BIN/"
+		cp "$OUT/hev-socks5-tunnel" "$APP_BIN/"
+		install -m 0755 "$OUT/hev-tun-helper" "$APP_BIN/hev-tun-helper"
+	fi
+
 	# Symlink /usr/bin/soildtunnel -> /opt/soildtunnel/bin/soildtunnel
 	mkdir -p "$DEB_WORK/usr/bin"
 	ln -sf /opt/soildtunnel/bin/soildtunnel "$DEB_WORK/usr/bin/soildtunnel"
@@ -79,6 +87,11 @@ set -e
 chmod 0755 /usr/lib/soildtunnel/soildtunnel-core
 chmod 0755 /usr/lib/soildtunnel/hev-socks5-tunnel
 chmod 0755 /usr/lib/soildtunnel/hev-tun-helper
+if [ -d /opt/soildtunnel/bin ]; then
+    chmod 0755 /opt/soildtunnel/bin/soildtunnel-core
+    chmod 0755 /opt/soildtunnel/bin/hev-socks5-tunnel
+    chmod 0755 /opt/soildtunnel/bin/hev-tun-helper
+fi
 POSTINST
 	chmod 0755 "$DEB_WORK/DEBIAN/postinst"
 

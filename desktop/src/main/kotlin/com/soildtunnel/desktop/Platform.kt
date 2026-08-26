@@ -24,26 +24,34 @@ object Paths {
     }
     fun engineBinary(): File {
         val name = "soildtunnel-core"
+        val appDir = System.getProperty("compose.application.dir") ?: ""
         val candidates = sequenceOf(
-            File(System.getProperty("compose.application.dir"), name),
-            File(System.getProperty("user.dir"), name),
-            File("/usr/lib/soildtunnel", name),
+            File(appDir, name),
+            File("/opt/soildtunnel/bin", name),
             File("/opt/soildtunnel/lib", name),
+            File("/usr/lib/soildtunnel", name),
+            File("/usr/local/lib/soildtunnel", name),
+            File(System.getProperty("user.dir"), name),
             File(workDir, name),
         )
-        return candidates.firstOrNull { it.isFile } ?: File(workDir, name)
+        val found = candidates.firstOrNull { it.isFile }
+        if (found != null) return found
+        System.err.println("[Paths] engineBinary candidates checked: ${candidates.toList().joinToString { it.absolutePath }}")
+        return File(workDir, name)
     }
 
     fun hevHelper(): File? {
         val name = "hev-tun-helper"
+        val appDir = System.getProperty("compose.application.dir") ?: ""
         val candidates = sequenceOf(
-            File(System.getProperty("compose.application.dir"), name),
-            File(System.getProperty("user.dir"), name),
-            File("/usr/lib/soildtunnel", name),
+            File(appDir, name),
+            File("/opt/soildtunnel/bin", name),
             File("/opt/soildtunnel/lib", name),
+            File("/usr/lib/soildtunnel", name),
+            File("/usr/local/lib/soildtunnel", name),
+            File(System.getProperty("user.dir"), name),
         )
-        val found = candidates.firstOrNull { it.isFile && it.canExecute() }
-        return found
+        return candidates.firstOrNull { it.isFile && it.canExecute() }
     }
 }
 
