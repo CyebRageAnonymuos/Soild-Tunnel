@@ -12,6 +12,6 @@ object LocaleStore {
     fun get(): String = Strings.language
 
     fun set(value: String) {
-        Strings.setLanguage(value)
+        Strings.setLang(value)
     }
 }

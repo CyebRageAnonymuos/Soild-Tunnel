@@ -17,7 +17,7 @@ object Strings {
     private val en: Map<String, String> by lazy { load("strings/values.xml") }
     private val fa: Map<String, String> by lazy { load("strings/values-fa.xml") }
 
-    fun setLanguage(tag: String) {
+    fun setLang(tag: String) {
         language = tag
         DesktopPrefs("app_locale").edit { it.putString("locale", tag) }
     }

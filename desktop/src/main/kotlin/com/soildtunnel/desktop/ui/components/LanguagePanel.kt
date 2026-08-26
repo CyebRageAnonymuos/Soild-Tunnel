@@ -41,7 +41,7 @@ fun LanguagePanel(modifier: Modifier = Modifier) {
 
     fun pick(tag: String) {
         if (tag == current) return
-        Strings.setLanguage(tag)
+        Strings.setLang(tag)
     }
 
     Card(
