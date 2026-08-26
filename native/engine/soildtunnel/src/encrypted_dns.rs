@@ -110,12 +110,14 @@ async fn dot_resolve(name: &str) -> Result<IpAddr, String> {
         .map_err(|e| format!("dot connect: {e}"))?;
 
     let server_name = dot_server_name(&host);
+    let config = boring::ssl::SslConnector::builder(boring::ssl::SslMethod::tls())
+        .map_err(|e| format!("dot tls builder: {e}"))?
+        .build()
+        .configure()
+        .map_err(|e| format!("dot tls configure: {e}"))?;
     let mut tls = tokio::time::timeout(
         Duration::from_secs(6),
-        tokio_boring::connect(boring::ssl::SslConnector::builder(boring::ssl::SslMethod::tls())
-            .map_err(|e| format!("dot tls builder: {e}"))?
-            .build(),
-        server_name.as_str(), tcp),
+        tokio_boring::connect(config, server_name.as_str(), tcp),
     )
     .await
     .map_err(|_| "dot handshake timeout".to_string())?
@@ -155,7 +157,7 @@ async fn dot_target_addr(host: &str) -> Result<SocketAddr, String> {
     if let Ok(ip) = name.parse::<IpAddr>() {
         return Ok(SocketAddr::new(ip, port));
     }
-    let targets = tokio::net::lookup_host((name, port))
+    let mut targets = tokio::net::lookup_host((name, port))
         .await
         .map_err(|e| format!("dot bootstrap resolve: {e}"))?;
     targets.next().ok_or_else(|| format!("dot no address for {name}"))
