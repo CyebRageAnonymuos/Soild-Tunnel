@@ -16,7 +16,7 @@ echo "== building tun helper =="
 HEV_DIR="$ROOT/build/hev-socks5-tunnel"
 if [ ! -d "$HEV_DIR" ]; then
 	mkdir -p "$(dirname "$HEV_DIR")"
-	git clone --depth 1 https://github.com/heiher/hev-socks5-tunnel.git "$HEV_DIR"
+	git clone --depth 1 --recursive https://github.com/heiher/hev-socks5-tunnel.git "$HEV_DIR"
 fi
 make -C "$HEV_DIR" -j"$(nproc)"
 gcc -O2 -o "$OUT/hev-tun-helper" \
