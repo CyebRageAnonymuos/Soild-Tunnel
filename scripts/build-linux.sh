@@ -71,9 +71,12 @@ if [ -n "$DEB_SRC" ]; then
 	cp "$OUT/hev-socks5-tunnel"  "$DEB_WORK/usr/lib/soildtunnel/"
 	install -m 0755 "$OUT/hev-tun-helper" "$DEB_WORK/usr/lib/soildtunnel/hev-tun-helper"
 
-	# Also copy into the app's own directory tree under /opt/
-	# (compose.application.dir varies; cover all bases)
-	for DIR in $(find "$DEB_WORK/opt" -type d 2>/dev/null); do
+	# Copy into /opt/soildtunnel/bin/ (next to launcher) and
+	# /opt/soildtunnel/lib/app/ (where compose.application.dir points)
+	for DIR in "$DEB_WORK/opt/soildtunnel/bin" \
+	           "$DEB_WORK/opt/soildtunnel/lib/app" \
+	           "$DEB_WORK/opt/soildtunnel/lib/app/resources"; do
+		mkdir -p "$DIR" 2>/dev/null || true
 		cp "$OUT/soildtunnel-core"  "$DIR/soildtunnel-core" 2>/dev/null || true
 		cp "$OUT/hev-socks5-tunnel" "$DIR/hev-socks5-tunnel" 2>/dev/null || true
 		cp "$OUT/hev-tun-helper"    "$DIR/hev-tun-helper"    2>/dev/null || true
