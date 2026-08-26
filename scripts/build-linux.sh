@@ -25,7 +25,7 @@ install -m 0755 "$ROOT/tun/hev-tun-helper" "$OUT/hev-tun-helper"
 # 3. Compose Desktop app: AppImage + deb + fat jar for tar.gz
 echo "== building desktop app =="
 cd "$ROOT"
-./gradlew :desktop:packageAppImage :desktop:packageDeb :desktop:jar --no-daemon
+gradle :desktop:packageAppImage :desktop:packageDeb :desktop:jar --no-daemon
 
 APP_IMAGE_DIR=$(find "$ROOT/desktop/build/compose/binaries" -type d -name "soildtunnel*" | head -1)
 JAR=$(find "$ROOT/desktop/build/libs" -name "*.jar" | head -1)
