@@ -19,6 +19,7 @@ import com.soildtunnel.desktop.core.UsageStore
 import com.soildtunnel.desktop.model.ConnectionProfile
 import com.soildtunnel.desktop.model.ConnectionState
 import com.soildtunnel.desktop.model.EndpointMode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,12 +30,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Desktop twin of the Android VPN service: owns the engine subprocess,
- * walks the connect ladder, verifies end-to-end and supervises restarts.
- * System-wide TUN routing is delegated to the privileged helper when the
- * user grants it; without it the session still works as a local proxy.
- */
 object SoildTunnelController {
 
     val state = MutableStateFlow<ConnectionState>(ConnectionState.Idle)
@@ -51,17 +46,9 @@ object SoildTunnelController {
     @Volatile
     private var engine: Process? = null
 
-    fun setState(s: ConnectionState) {
-        state.value = s
-    }
-
-    fun setIpInfo(v: IpEndpoint?) {
-        ipInfo.value = v
-    }
-
-    fun setIpLoading(v: Boolean) {
-        ipLoading.value = v
-    }
+    fun setState(s: ConnectionState) { state.value = s }
+    fun setIpInfo(v: IpEndpoint?) { ipInfo.value = v }
+    fun setIpLoading(v: Boolean) { ipLoading.value = v }
 
     fun offerTunnelIpInfo(v: IpEndpoint) {
         if (ipInfo.value?.viaTunnel != true || ipInfo.value?.ip != v.ip) ipInfo.value = v
@@ -98,21 +85,52 @@ object SoildTunnelController {
         }
     }
 
+    // ── Pre-flight checks ──────────────────────────────────────────────
+
+    private fun preflightCheck(): String? {
+        val bin = Paths.engineBinary()
+        if (!bin.exists()) {
+            return "Engine binary not found at: ${bin.absolutePath}\n" +
+                "Please reinstall the SoildTunnel package."
+        }
+        if (!bin.canExecute()) {
+            return "Engine binary is not executable: ${bin.absolutePath}\n" +
+                "Run: chmod +x ${bin.absolutePath}"
+        }
+        return null
+    }
+
+    // ── Session ────────────────────────────────────────────────────────
+
     private suspend fun session(userProfile: ConnectionProfile) {
         try {
+            val preflightError = preflightCheck()
+            if (preflightError != null) {
+                DiagnosticsLog.e(TAG, preflightError)
+                setState(ConnectionState.Error(preflightError))
+                return
+            }
+
             setState(ConnectionState.Launching)
             DiagnosticsLog.i(TAG, "Connecting…")
             PortProbe.awaitClosed(TunnelConfig.SOCKS_HOST, TunnelConfig.SOCKS_PORT, 5_000)
 
-            // 24h sticky pin, same policy as the Android app.
             val sticky = StickyServer.usable()
 
-            val resolved: ConnectionProfile = if (userProfile.protocol == Protocol.AUTO) {
-                smartAutoLadder(userProfile, sticky?.range)
-            } else {
-                directLadder(userProfile)
+            val resolved: ConnectionProfile = try {
+                if (userProfile.protocol == Protocol.AUTO) {
+                    smartAutoLadder(userProfile, sticky?.range)
+                } else {
+                    directLadder(userProfile)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                DiagnosticsLog.e(TAG, "Connection failed: ${e.message}")
+                setState(ConnectionState.Error("Connection failed: ${e.message ?: "unknown error"}"))
+                return
             } ?: run {
-                setState(ConnectionState.Error(Strings.get("err_engine_died")))
+                setState(ConnectionState.Error(Strings.get("err_auto_failed")))
                 return
             }
 
@@ -135,7 +153,6 @@ object SoildTunnelController {
             setState(ConnectionState.Connected("${TunnelConfig.SOCKS_HOST}:${TunnelConfig.SOCKS_PORT}"))
             DiagnosticsLog.i(TAG, "All checks passed - tunnel is ready.")
 
-            // Exit IP + flag for the telemetry card, fetched through the tunnel.
             ipLoading.value = true
             scope.launch {
                 val info = runCatching {
@@ -151,11 +168,11 @@ object SoildTunnelController {
             }
 
             supervise(resolved)
-        } catch (e: kotlinx.coroutines.CancellationException) {
+        } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            DiagnosticsLog.e(TAG, "Connect failed: ${e.message}")
-            setState(ConnectionState.Error(e.message ?: "connection failed"))
+            DiagnosticsLog.e(TAG, "Connect failed: ${e.javaClass.simpleName}: ${e.message}")
+            setState(ConnectionState.Error("Connect failed: ${e.message ?: e.javaClass.simpleName}"))
         } finally {
             stopEngine()
             stopTunHelper()
@@ -164,22 +181,20 @@ object SoildTunnelController {
         }
     }
 
-    /** SMART AUTO: fingerprint, then walk the strategy ladder. */
+    // ── Ladder ─────────────────────────────────────────────────────────
+
     private suspend fun smartAutoLadder(
         userProfile: ConnectionProfile,
         stickyRange: String?,
     ): ConnectionProfile? {
         setState(ConnectionState.Connecting)
+        DiagnosticsLog.i(TAG, "Fingerprinting network…")
         updateNotification(Strings.get("state_analyzing"))
         val fp = NetworkFingerprinter.fingerprint()
         val plan = SmartAuto.buildPlan(userProfile, fp, stickyRange)
-        return runLadder(plan)
+        return runLadder(plan, "Smart Auto")
     }
 
-    /**
-     * Hand-picked protocol: one pass as configured on a capped budget, then
-     * the same protocol hardened (anti-DPI). The user's choice never swaps.
-     */
     private fun directLadder(profile: ConnectionProfile): ConnectionProfile? {
         val fullBudget = profile.connectTimeoutMs()
         val hardenedNoize = if (profile.noize == Noize.OFF) Noize.FIREWALL else profile.noize
@@ -198,26 +213,34 @@ object SoildTunnelController {
                 AutoCandidate(hardened, fullBudget, "${profile.protocol.name} · hardened pass"),
             )
         }
-        return runBlockingLadder(plan)
+        return kotlinx.coroutines.runBlocking { runLadder(plan, profile.protocol.name) }
     }
 
-    private suspend fun runLadder(plan: List<AutoCandidate>): ConnectionProfile? {
+    private suspend fun runLadder(plan: List<AutoCandidate>, label: String): ConnectionProfile? {
+        var lastEngineLog = ""
         for ((index, cand) in plan.withIndex()) {
             if (!currentRunActive()) return null
             setState(ConnectionState.Connecting)
             updateNotification(cand.label)
             DiagnosticsLog.i(TAG, "Strategy ${index + 1}/${plan.size}: ${cand.label}")
-            val ok = attempt(cand.profile, cand.timeoutMs)
-            if (ok) return cand.profile
+            try {
+                val ok = attempt(cand.profile, cand.timeoutMs)
+                if (ok) return cand.profile
+                lastEngineLog = DiagnosticsLog.recentEngineLines(3)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                DiagnosticsLog.w(TAG, "Strategy ${cand.label} threw: ${e.message}")
+                lastEngineLog = DiagnosticsLog.recentEngineLines(3)
+            }
             stopEngine()
         }
+        DiagnosticsLog.e(TAG, "All ${plan.size} $label strategies failed.\nLast engine output:\n$lastEngineLog")
         return null
     }
 
-    private fun runBlockingLadder(plan: List<AutoCandidate>): ConnectionProfile? =
-        kotlinx.coroutines.runBlocking { runLadder(plan) }
+    // ── Single attempt ─────────────────────────────────────────────────
 
-    /** One engine attempt: spawn, wait for the SOCKS port, self-test. */
     private suspend fun attempt(profile: ConnectionProfile, budgetMs: Long): Boolean {
         spawnEngine(profile) ?: return false
         val opened = PortProbe.awaitOpen(
@@ -225,16 +248,24 @@ object SoildTunnelController {
             TunnelConfig.SOCKS_PORT,
             budgetMs,
         ) { engineAlive() }
-        if (!opened) return false
+        if (!opened) {
+            val alive = engineAlive()
+            val detail = if (!alive) "Engine exited prematurely."
+            else "Engine still scanning — SOCKS5 port never opened."
+            DiagnosticsLog.w(TAG, "Port probe failed: $detail")
+            return false
+        }
         setState(ConnectionState.Verifying)
         return runCatching { Diagnostics.run() }.getOrDefault(false)
     }
 
+    // ── Engine process ─────────────────────────────────────────────────
+
     private fun spawnEngine(profile: ConnectionProfile): Process? {
         val bin = Paths.engineBinary()
+        DiagnosticsLog.i(TAG, "Engine binary: ${bin.absolutePath} (exists=${bin.exists()}, exec=${bin.canExecute()})")
         if (!bin.exists()) {
-            DiagnosticsLog.e(TAG, "Engine binary missing at ${bin.absolutePath}")
-            setState(ConnectionState.Error("Engine binary not found: " + bin.name))
+            setState(ConnectionState.Error("Engine binary not found: ${bin.name}"))
             return null
         }
         bin.setExecutable(true)
@@ -257,7 +288,7 @@ object SoildTunnelController {
             DiagnosticsLog.i(TAG, "Engine started (pid ${p.pid()}).")
             p
         } catch (e: Exception) {
-            DiagnosticsLog.e(TAG, "Engine spawn failed: ${e.message}")
+            DiagnosticsLog.e(TAG, "Engine spawn failed: ${e.javaClass.simpleName}: ${e.message}")
             null
         }
     }
@@ -274,7 +305,8 @@ object SoildTunnelController {
         PortProbe.awaitClosed(TunnelConfig.SOCKS_HOST, TunnelConfig.SOCKS_PORT, 3_000)
     }
 
-    /** Keeps the engine alive; retries with backoff if it dies. */
+    // ── Supervise ──────────────────────────────────────────────────────
+
     private suspend fun supervise(profile: ConnectionProfile) {
         var attempt = 0
         val backoff = longArrayOf(1_000, 2_000, 4_000, 8_000, 15_000, 30_000)
@@ -319,14 +351,18 @@ object SoildTunnelController {
         DiagnosticsLog.d(TAG, label)
     }
 
-    /**
-     * TUN helper via pkexec. Failure is non-fatal: the session continues as a
-     * local SOCKS/HTTP proxy and the user just sees no system-wide routing.
-     */
+    // ── TUN helper ─────────────────────────────────────────────────────
+
     private fun startTunHelper(profile: ConnectionProfile) {
         if (tunActive) return
-        val candidate = Paths.hevHelper() ?: return
-        if (!supportsPkexec()) return
+        val candidate = Paths.hevHelper() ?: run {
+            DiagnosticsLog.i(TAG, "TUN helper not found — running in proxy mode.")
+            return
+        }
+        if (!supportsPkexec()) {
+            DiagnosticsLog.w(TAG, "pkexec not available — system-wide routing requires a polkit agent.")
+            return
+        }
         try {
             val args = mutableListOf(
                 "pkexec", "--disable-internal-agent",

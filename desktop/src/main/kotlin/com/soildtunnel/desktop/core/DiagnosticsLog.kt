@@ -259,5 +259,10 @@ object DiagnosticsLog {
     fun exportText(): String =
         synchronized(bufferLock) { buffer.toList() }.joinToString("\n") { it.format() }
 
+    fun recentEngineLines(count: Int): String =
+        synchronized(bufferLock) {
+            buffer.toList().filter { it.tag == "engine" }.takeLast(count)
+        }.joinToString("\n") { it.message }
+
     private const val FILE_NAME = "diagnostics.log"
 }
