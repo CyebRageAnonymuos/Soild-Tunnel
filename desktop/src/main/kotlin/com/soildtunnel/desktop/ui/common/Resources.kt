@@ -8,7 +8,7 @@ import androidx.compose.ui.res.loadImageBitmap
 
 private val logoBitmap: ImageBitmap by lazy {
     val loader = Thread.currentThread().contextClassLoader
-        ?: ResourcesKt::class.java.classLoader
+        ?: com.soildtunnel.desktop.DesktopBuild::class.java.classLoader
     val stream = requireNotNull(loader.getResourceAsStream("drawable/ic_logo.png")) {
         "drawable/ic_logo.png not found on classpath"
     }

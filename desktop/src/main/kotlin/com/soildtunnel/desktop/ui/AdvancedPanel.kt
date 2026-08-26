@@ -645,13 +645,14 @@ fun AdvancedPanel(
 
                     // ---------- Reset ----------
                     SectionHeader(tr("section_reset"))
+                    val resetDoneMsg = tr("reset_done")
                     OutlinedButton(
                         onClick = {
                             // Restore every setting to factory defaults. Persisted
                             // immediately through the normal onProfileChange path
                             // (DataStore), exactly like any other settings change.
                             onProfileChange(ConnectionProfile())
-                            DesktopToast.show(tr("reset_done"))
+                            DesktopToast.show(resetDoneMsg)
                         },
                         enabled = enabled,
                         modifier = Modifier.fillMaxWidth(),
@@ -828,9 +829,10 @@ private fun ProxyEndpointRow(label: String, value: String) {
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
+        val copiedMsg = tr("share_copied")
         IconButton(onClick = {
             clipboard.setText(AnnotatedString(value))
-            DesktopToast.show(tr("share_copied"))
+            DesktopToast.show(copiedMsg)
         }) {
             Icon(
                 Icons.Rounded.ContentCopy,

@@ -117,10 +117,11 @@ fun DiagnosticsPanel(modifier: Modifier = Modifier) {
                         ) {
                             Text(tr("diag_run"))
                         }
+                        val copiedMsg = tr("diag_copied")
                         TextButton(
                             onClick = {
                                 clipboard.setText(AnnotatedString(DiagnosticsLog.exportText()))
-                                DesktopToast.show(tr("diag_copied"))
+                                DesktopToast.show(copiedMsg)
                             },
                         ) {
                             Text(tr("diag_copy"))

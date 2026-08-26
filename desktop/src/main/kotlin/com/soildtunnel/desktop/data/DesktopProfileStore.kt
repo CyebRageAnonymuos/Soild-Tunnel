@@ -99,7 +99,7 @@ class DesktopProfileStore {
         fun bool(key: String, def: Boolean): Boolean =
             props.getProperty(key)?.toBooleanStrictOrNull() ?: def
         fun int(key: String, def: Int): Int = props.getProperty(key)?.toIntOrNull() ?: def
-        fun <T : Enum<T>> en(key: String, def: T): T =
+        inline fun <reified T : Enum<T>> en(key: String, def: T): T =
             props.getProperty(key)?.let { runCatching { enumValueOf<T>(it) }.getOrNull() } ?: def
         fun list(key: String): List<String> =
             str(key, "").split(',').map { it.trim() }.filter { it.isNotEmpty() }

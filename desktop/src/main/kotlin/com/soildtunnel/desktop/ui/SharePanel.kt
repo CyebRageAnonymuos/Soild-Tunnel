@@ -230,10 +230,11 @@ private fun EndpointRow(label: String, value: String) {
                 color = MaterialTheme.colorScheme.primary,
             )
         }
+        val copiedMsg = tr("share_copied")
         IconButton(
             onClick = {
                 clipboard.setText(AnnotatedString(value))
-                DesktopToast.show(tr("share_copied"))
+                DesktopToast.show(copiedMsg)
             },
         ) {
             Icon(

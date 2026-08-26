@@ -2,14 +2,15 @@ package com.soildtunnel.desktop.tunnel
 
 import com.soildtunnel.desktop.Paths
 import com.soildtunnel.desktop.core.AutoCandidate
+import com.soildtunnel.desktop.core.NetworkFingerprinter
 import com.soildtunnel.desktop.core.Diagnostics
 import com.soildtunnel.desktop.core.DiagnosticsLog
 import com.soildtunnel.desktop.core.EngineMeta
 import com.soildtunnel.desktop.core.IpEndpoint
 import com.soildtunnel.desktop.core.NetProbe
-import com.soildtunnel.desktop.core.Noize
+import com.soildtunnel.desktop.model.Noize
 import com.soildtunnel.desktop.core.PortProbe
-import com.soildtunnel.desktop.core.Protocol
+import com.soildtunnel.desktop.model.Protocol
 import com.soildtunnel.desktop.core.SmartAuto
 import com.soildtunnel.desktop.core.StickyServer
 import com.soildtunnel.desktop.Strings
@@ -170,7 +171,7 @@ object SoildTunnelController {
     ): ConnectionProfile? {
         setState(ConnectionState.Connecting)
         updateNotification(Strings.get("state_analyzing"))
-        val fp = SmartAuto.fingerprint()
+        val fp = NetworkFingerprinter.fingerprint()
         val plan = SmartAuto.buildPlan(userProfile, fp, stickyRange)
         return runLadder(plan)
     }
@@ -206,7 +207,7 @@ object SoildTunnelController {
             setState(ConnectionState.Connecting)
             updateNotification(cand.label)
             DiagnosticsLog.i(TAG, "Strategy ${index + 1}/${plan.size}: ${cand.label}")
-            val ok = attempt(cand.profile, cand.budgetMs)
+            val ok = attempt(cand.profile, cand.timeoutMs)
             if (ok) return cand.profile
             stopEngine()
         }
