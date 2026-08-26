@@ -22,7 +22,26 @@ object Paths {
         d.mkdirs()
         d
     }
-    fun engineBinary(): File = File(workDir, "soildtunnel-core")
+    fun engineBinary(): File {
+        val name = "soildtunnel-core"
+        val candidates = sequenceOf(
+            File(System.getProperty("compose.application.dir"), name),
+            File(System.getProperty("user.dir"), name),
+            File(workDir, name),
+        )
+        return candidates.firstOrNull { it.isFile } ?: File(workDir, name)
+    }
+
+    fun hevHelper(): File? {
+        val name = "hev-tun-helper"
+        val candidates = sequenceOf(
+            File(System.getProperty("compose.application.dir"), name),
+            File(System.getProperty("user.dir"), name),
+            File("/usr/lib/soildtunnel", name),
+        )
+        val found = candidates.firstOrNull { it.isFile && it.canExecute() }
+        return found
+    }
 }
 
 /**

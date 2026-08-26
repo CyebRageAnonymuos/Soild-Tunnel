@@ -27,7 +27,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 /**
  * Desktop twin of the Android VPN service: owns the engine subprocess,
@@ -325,13 +324,7 @@ object SoildTunnelController {
      */
     private fun startTunHelper(profile: ConnectionProfile) {
         if (tunActive) return
-        val helper = File(Paths.dataDir.parentFile, "bin/hev-tun-helper")
-        val candidate = sequenceOf(
-            helper,
-            File("/usr/lib/soildtunnel/hev-tun-helper"),
-            File(System.getProperty("compose.application.dir"), "hev-tun-helper"),
-            File(System.getProperty("user.dir"), "hev-tun-helper"),
-        ).firstOrNull { it.exists() } ?: return
+        val candidate = Paths.hevHelper() ?: return
         if (!supportsPkexec()) return
         try {
             val args = mutableListOf(

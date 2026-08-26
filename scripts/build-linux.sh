@@ -11,20 +11,16 @@ echo "== building engine =="
 cargo build --release --manifest-path "$ROOT/native/engine/soildtunnel/Cargo.toml"
 cp "$ROOT/native/engine/soildtunnel/target/release/soildtunnel" "$OUT/soildtunnel-core"
 
-# 2. hev-socks5-tunnel + privileged helper
-echo "== building tun helper =="
+# 2. hev-socks5-tunnel standalone binary + helper script
+echo "== building tun components =="
 HEV_DIR="$ROOT/build/hev-socks5-tunnel"
 if [ ! -d "$HEV_DIR" ]; then
 	mkdir -p "$(dirname "$HEV_DIR")"
 	git clone --depth 1 --recursive https://github.com/heiher/hev-socks5-tunnel.git "$HEV_DIR"
 fi
 make -C "$HEV_DIR" -j"$(nproc)"
-gcc -O2 -o "$OUT/hev-tun-helper" \
-	"$ROOT/tun/hev-tun-helper.c" \
-	"$HEV_DIR"/build/libhev-socks5-tunnel.so \
-	-Wl,-rpath,'$ORIGIN' \
-	-lpthread
-cp "$HEV_DIR"/build/libhev-socks5-tunnel.so "$OUT/"
+cp "$HEV_DIR"/bin/hev-socks5-tunnel "$OUT/"
+install -m 0755 "$ROOT/tun/hev-tun-helper" "$OUT/hev-tun-helper"
 
 # 3. Compose Desktop app: AppImage + deb + fat jar for tar.gz
 echo "== building desktop app =="
@@ -38,19 +34,23 @@ JAR=$(find "$ROOT/desktop/build/libs" -name "*.jar" | head -1)
 BUNDLE="$OUT/SoildTunnel-linux-x64"
 rm -rf "$BUNDLE" && mkdir -p "$BUNDLE"
 cp "$JAR" "$BUNDLE/soildtunnel.jar"
-cp "$OUT/soildtunnel-core" "$OUT/hev-tun-helper" "$OUT/libhev-socks5-tunnel.so" "$BUNDLE/"
+cp "$OUT/soildtunnel-core" "$OUT/hev-socks5-tunnel" "$OUT/hev-tun-helper" "$BUNDLE/"
 cat > "$BUNDLE/soildtunnel.sh" <<'EOF'
 #!/usr/bin/env bash
 DIR="$(cd "$(dirname "$0")" && pwd)"
-export LD_LIBRARY_PATH="$DIR:${LD_LIBRARY_PATH:-}"
+export PATH="$DIR:$PATH"
 exec java -jar "$DIR/soildtunnel.jar" "$@"
 EOF
-chmod +x "$BUNDLE/soildtunnel.sh" "$BUNDLE/soildtunnel-core" "$BUNDLE/hev-tun-helper"
+chmod +x "$BUNDLE/soildtunnel.sh" "$BUNDLE/soildtunnel-core" \
+	"$BUNDLE/hev-socks5-tunnel" "$BUNDLE/hev-tun-helper"
 
-# Copy helpers next to the AppImage payload so pkexec finds them.
-if [ -n "${APP_IMAGE_DIR:-}" ]; then
-	cp "$OUT/soildtunnel-core" "$OUT/hev-tun-helper" \
-		"$OUT/libhev-socks5-tunnel.so" "$APP_IMAGE_DIR/bin/" 2>/dev/null || true
+# Copy natives into the AppImage payload so pkexec finds them.
+if [ -n "${APP_IMAGE_DIR:-}" ] && [ -d "$APP_IMAGE_DIR/bin" ]; then
+	cp "$OUT/soildtunnel-core" "$OUT/hev-socks5-tunnel" \
+		"$OUT/hev-tun-helper" "$APP_IMAGE_DIR/bin/"
+	chmod 0755 "$APP_IMAGE_DIR/bin/hev-socks5-tunnel" \
+		"$APP_IMAGE_DIR/bin/hev-tun-helper" \
+		"$APP_IMAGE_DIR/bin/soildtunnel-core"
 fi
 
 tar -czf "$OUT/SoildTunnel-1.0.3-linux-x64.tar.gz" -C "$(dirname "$BUNDLE")" "$(basename "$BUNDLE")"
