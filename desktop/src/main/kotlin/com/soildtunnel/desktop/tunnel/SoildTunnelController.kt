@@ -269,6 +269,7 @@ object SoildTunnelController {
             return null
         }
         bin.setExecutable(true)
+        cleanupStaleState(profile)
         return try {
             val pb = ProcessBuilder(listOf(bin.absolutePath) + profile.toArgs())
             pb.directory(Paths.workDir)
@@ -294,6 +295,21 @@ object SoildTunnelController {
     }
 
     private fun engineAlive(): Boolean = engine?.isAlive == true
+
+    private fun cleanupStaleState(profile: ConnectionProfile) {
+        if (profile.protocol == Protocol.WIREGUARD || profile.protocol == Protocol.GOOL) {
+            runCatching {
+                val dir = Paths.workDir
+                listOf("soildtunnel.toml", "soildtunnel-secondary.toml").forEach { name ->
+                    val f = java.io.File(dir, name)
+                    if (f.exists() && f.lastModified() < System.currentTimeMillis() - 3_600_000) {
+                        f.delete()
+                        DiagnosticsLog.d(TAG, "Deleted stale identity: $name")
+                    }
+                }
+            }
+        }
+    }
 
     private suspend fun stopEngine() = withContext(Dispatchers.IO) {
         val p = engine ?: return@withContext

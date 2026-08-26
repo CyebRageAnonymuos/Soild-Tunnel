@@ -97,9 +97,9 @@ object SmartAuto {
                 cand(Protocol.GOOL, Noize.LIGHT),
             )
             DpiClass.SNI_FILTERING -> listOf(
-                cand(Protocol.WIREGUARD, Noize.BALANCED),
+                cand(Protocol.MASQUE, Noize.BALANCED, frag = true, ech = true),
                 cand(Protocol.GOOL, Noize.BALANCED),
-                cand(Protocol.MASQUE, Noize.FIREWALL, frag = true, ech = true),
+                cand(Protocol.WIREGUARD, Noize.BALANCED),
             )
             DpiClass.UDP_THROTTLED -> listOf(
                 cand(Protocol.MASQUE, Noize.LIGHT, h2 = true, frag = true, ech = true),
