@@ -41,19 +41,17 @@ jobs:
       - name: Build engine + helper + app
         run: bash scripts/build-linux.sh
 
-      - name: Rename artifacts
+      - name: Verify artifacts
         id: names
         run: |
           D=desktop/dist
+          echo "== final artifacts =="
           ls -la $D
-          # AppImage produced by compose into binaries dir
-          APPIMAGE=$(find desktop/build/compose/binaries -name "*.AppImage" | head -1 || true)
-          if [ -n "$APPIMAGE" ]; then
-            cp "$APPIMAGE" "$D/SoildTunnel-1.0.3-linux-x64.AppImage"
-          fi
-          DEB=$(find desktop/build/compose/binaries -name "*.deb" | head -1 || true)
+          # Verify engine binary is inside the deb
+          DEB=$(find "$D" -name "*.deb" | head -1 || true)
           if [ -n "$DEB" ]; then
-            cp "$DEB" "$D/soildtunnel_1.0.3_amd64.deb"
+            echo "== deb contents check =="
+            dpkg-deb -c "$DEB" | grep -E "soildtunnel-core|hev-socks5|hev-tun" || echo "WARNING: no native binaries found in deb!"
           fi
 
       - name: Release

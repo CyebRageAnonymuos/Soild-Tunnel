@@ -61,37 +61,37 @@ if [ -n "$DEB_SRC" ]; then
 	trap 'rm -rf "$DEB_WORK"' EXIT
 	dpkg-deb -R "$DEB_SRC" "$DEB_WORK"
 
-	# Create /usr/lib/soildtunnel/ for native binaries
+	# Show what Compose put inside the deb
+	echo "== deb structure =="
+	find "$DEB_WORK/opt" -type f 2>/dev/null | head -20 || true
+
+	# System-wide location for native binaries
 	mkdir -p "$DEB_WORK/usr/lib/soildtunnel"
 	cp "$OUT/soildtunnel-core"   "$DEB_WORK/usr/lib/soildtunnel/"
 	cp "$OUT/hev-socks5-tunnel"  "$DEB_WORK/usr/lib/soildtunnel/"
 	install -m 0755 "$OUT/hev-tun-helper" "$DEB_WORK/usr/lib/soildtunnel/hev-tun-helper"
 
-	# Also copy into the app bin dir so compose.application.dir finds them
-	APP_BIN=$(find "$DEB_WORK/opt" -type d -name "bin" | head -1 || true)
-	if [ -n "$APP_BIN" ]; then
-		cp "$OUT/soildtunnel-core"  "$APP_BIN/"
-		cp "$OUT/hev-socks5-tunnel" "$APP_BIN/"
-		install -m 0755 "$OUT/hev-tun-helper" "$APP_BIN/hev-tun-helper"
-	fi
+	# Also copy into the app's own directory tree under /opt/
+	# (compose.application.dir varies; cover all bases)
+	for DIR in $(find "$DEB_WORK/opt" -type d 2>/dev/null); do
+		cp "$OUT/soildtunnel-core"  "$DIR/soildtunnel-core" 2>/dev/null || true
+		cp "$OUT/hev-socks5-tunnel" "$DIR/hev-socks5-tunnel" 2>/dev/null || true
+		cp "$OUT/hev-tun-helper"    "$DIR/hev-tun-helper"    2>/dev/null || true
+		chmod 0755 "$DIR/soildtunnel-core" "$DIR/hev-socks5-tunnel" "$DIR/hev-tun-helper" 2>/dev/null || true
+	done
 
 	# Symlink /usr/bin/soildtunnel -> /opt/soildtunnel/bin/soildtunnel
 	mkdir -p "$DEB_WORK/usr/bin"
 	ln -sf /opt/soildtunnel/bin/soildtunnel "$DEB_WORK/usr/bin/soildtunnel"
 
-	# postinst: set exec perms on native binaries
+	# postinst: set exec perms on all native binaries
 	mkdir -p "$DEB_WORK/DEBIAN"
 	cat > "$DEB_WORK/DEBIAN/postinst" <<'POSTINST'
 #!/bin/sh
 set -e
-chmod 0755 /usr/lib/soildtunnel/soildtunnel-core
-chmod 0755 /usr/lib/soildtunnel/hev-socks5-tunnel
-chmod 0755 /usr/lib/soildtunnel/hev-tun-helper
-if [ -d /opt/soildtunnel/bin ]; then
-    chmod 0755 /opt/soildtunnel/bin/soildtunnel-core
-    chmod 0755 /opt/soildtunnel/bin/hev-socks5-tunnel
-    chmod 0755 /opt/soildtunnel/bin/hev-tun-helper
-fi
+for f in $(find /usr/lib/soildtunnel /opt -name "soildtunnel-core" -o -name "hev-socks5-tunnel" -o -name "hev-tun-helper" 2>/dev/null); do
+    chmod 0755 "$f" 2>/dev/null || true
+done
 POSTINST
 	chmod 0755 "$DEB_WORK/DEBIAN/postinst"
 
