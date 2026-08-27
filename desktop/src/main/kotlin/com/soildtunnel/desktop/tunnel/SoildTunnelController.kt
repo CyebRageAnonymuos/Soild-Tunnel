@@ -236,6 +236,7 @@ object SoildTunnelController {
             stopEngine()
         }
         DiagnosticsLog.e(TAG, "All ${plan.size} $label strategies failed.\nLast engine output:\n$lastEngineLog")
+        StickyServer.clear()
         return null
     }
 
@@ -297,15 +298,21 @@ object SoildTunnelController {
     private fun engineAlive(): Boolean = engine?.isAlive == true
 
     private fun cleanupStaleState(profile: ConnectionProfile) {
-        if (profile.protocol == Protocol.WIREGUARD || profile.protocol == Protocol.GOOL) {
-            runCatching {
-                val dir = Paths.workDir
-                listOf("soildtunnel.toml", "soildtunnel-secondary.toml").forEach { name ->
-                    val f = java.io.File(dir, name)
-                    if (f.exists() && f.lastModified() < System.currentTimeMillis() - 3_600_000) {
-                        f.delete()
-                        DiagnosticsLog.d(TAG, "Deleted stale identity: $name")
-                    }
+        runCatching {
+            val dir = Paths.workDir
+            val files = when (profile.protocol) {
+                Protocol.GOOL -> listOf("soildtunnel.toml", "soildtunnel-secondary.toml")
+                Protocol.WIREGUARD -> listOf("soildtunnel.toml", "soildtunnel-secondary.toml")
+                else -> return
+            }
+            for (name in files) {
+                val f = java.io.File(dir, name)
+                if (!f.exists()) continue
+                val stale = f.lastModified() < System.currentTimeMillis() - 3_600_000
+                val isSecondary = name.contains("secondary") && profile.protocol == Protocol.GOOL
+                if (stale || isSecondary) {
+                    f.delete()
+                    DiagnosticsLog.d(TAG, "Deleted identity: $name (stale=$stale, secondary=$isSecondary)")
                 }
             }
         }
