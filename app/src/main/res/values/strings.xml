@@ -216,6 +216,10 @@
     <string name="enc_dns_endpoint_label">Custom endpoint (optional)</string>
     <string name="enc_dns_endpoint_hint">https://cloudflare-dns.com/dns-query</string>
     <string name="enc_dns_endpoint_help">DoH: full https:// URL. DoT: host or host:port (default port 853). Empty = Cloudflare default.</string>
+    <string name="dns_ad_block_title">Block ads</string>
+    <string name="dns_ad_block_desc">Filter ads and trackers through Cloudflare Family DNS. Works on all apps inside the tunnel.</string>
+    <string name="dns_malware_block_title">Malware protection</string>
+    <string name="dns_malware_block_desc">Block known phishing and malware domains through Cloudflare DNS security.</string>
     <!-- Feature merge: home-screen widget, onboarding, ping, crash report -->
     <string name="widget_desc">Connect or disconnect SoildTunnel with one tap</string>
     <string name="widget_toggle_desc">Toggle connection</string>

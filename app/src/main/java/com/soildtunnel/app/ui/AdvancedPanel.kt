@@ -295,6 +295,24 @@ fun AdvancedPanel(
                     } else {
                         HelperText(stringResource(R.string.dns_help))
                     }
+
+                    // ---------- DNS content filtering ----------
+                    Spacer(Modifier.height(8.dp))
+                    ToggleRow(
+                        title = stringResource(R.string.dns_ad_block_title),
+                        description = stringResource(R.string.dns_ad_block_desc),
+                        checked = profile.dnsAdBlock,
+                        enabled = enabled,
+                        onChange = { onProfileChange(profile.copy(dnsAdBlock = it)) },
+                    )
+                    ToggleRow(
+                        title = stringResource(R.string.dns_malware_block_title),
+                        description = stringResource(R.string.dns_malware_block_desc),
+                        checked = profile.dnsMalwareBlock,
+                        enabled = enabled,
+                        onChange = { onProfileChange(profile.copy(dnsMalwareBlock = it)) },
+                    )
+
                     Spacer(Modifier.height(16.dp))
 
                     // ---------- Routing rules ----------

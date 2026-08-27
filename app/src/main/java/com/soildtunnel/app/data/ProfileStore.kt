@@ -73,6 +73,8 @@ class ProfileStore(private val context: Context) {
         val routeSniff = booleanPreferencesKey("routeSniff")
         val routeSniffMs = intPreferencesKey("routeSniffMs")
         val autoReprovision = booleanPreferencesKey("autoReprovision")
+        val dnsAdBlock = booleanPreferencesKey("dnsAdBlock")
+        val dnsMalwareBlock = booleanPreferencesKey("dnsMalwareBlock")
     }
 
     /**
@@ -145,7 +147,9 @@ class ProfileStore(private val context: Context) {
             upstreamProxy = prefs[Keys.upstreamProxy] ?: "",
             routeSniff = prefs[Keys.routeSniff] ?: true,
             routeSniffMs = prefs[Keys.routeSniffMs] ?: 0,
-            autoReprovision = prefs[Keys.autoReprovision] ?: true,
+            autoReprovision = prefs[Keys.autoReprovision] ?: false,
+            dnsAdBlock = prefs[Keys.dnsAdBlock] ?: false,
+            dnsMalwareBlock = prefs[Keys.dnsMalwareBlock] ?: false,
         )
     }
 
@@ -197,6 +201,8 @@ class ProfileStore(private val context: Context) {
             prefs[Keys.routeSniff] = profile.routeSniff
             prefs[Keys.routeSniffMs] = profile.routeSniffMs
             prefs[Keys.autoReprovision] = profile.autoReprovision
+            prefs[Keys.dnsAdBlock] = profile.dnsAdBlock
+            prefs[Keys.dnsMalwareBlock] = profile.dnsMalwareBlock
         }
         // Secrets go to the Keystore-sealed store, never to the prefs file.
         secrets.write(SecretStore.ACCESS_SECRET, profile.accessClientSecret)

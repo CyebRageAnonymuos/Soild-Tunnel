@@ -1,16 +1,16 @@
-# SoildTunnel v1.0.0
+# SoildTunnel v1.0.4
 
-First stable release.
+New features, bug fixes, and UI improvements.
 
-- **Complete black liquid-glass redesign** — new power orb, unified connection
-  card with live status, session timer, exit IP, real-time speeds and the
-  protocol/endpoint/latency row, plus a translucent side drawer.
-- **Throughput work** — larger default TUN MTU (1500), fat kernel socket
-  buffers on the engine's hot-path relays and bigger userspace pump chunks.
-- **Multi-protocol engine** — Smart Auto endpoint selection, MASQUE and
-  WireGuard transports, upstream proxy chaining, TLS fingerprint options.
-- **Privacy toolkit** — kill switch, IPv6 leak protection, per-app routing,
-  strict per-app blocking.
-- **Signing** — release APKs are signed automatically by CI; version code 1.
+**New features:**
+- **DNS ad blocking** — filter ads and trackers via Cloudflare Family DNS (1.1.1.3). Toggle in Settings > DNS.
+- **Malware protection** — block known phishing and malware domains via Cloudflare DNS security (1.1.1.2). Toggle in Settings > DNS.
 
-Version: SoildTunnel 1.0.0 (version code 1). Bundled core 1.0.0.
+**Bug fixes:**
+- **Server country display** — server list now always shows the correct country name and flag instead of the Cloudflare edge location. The actual exit country is shown in the connection card after connecting.
+- **Stable exit IP** — auto-reprovision is now off by default, so your exit IP stays the same across reconnections. Re-enable in Settings > Security if needed.
+
+**UI improvements:**
+- **Liquid glass connect button** — enhanced with depth sheen overlay and secondary glow for a more premium feel.
+
+Version: SoildTunnel 1.0.4 (version code 5).

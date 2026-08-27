@@ -105,7 +105,7 @@ fun ConnectButton(
                 ),
         )
 
-        // The tappable disc.
+        // The tappable disc — liquid glass effect.
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -127,6 +127,22 @@ fun ConnectButton(
                     onClick = onClick,
                 ),
         ) {
+            // Glass sheen overlay — top highlight for depth.
+            Box(
+                modifier = Modifier
+                    .size(DISC)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.12f),
+                                Color.Transparent,
+                            ),
+                            startY = 0f,
+                            endY = DISC.value * 0.45f,
+                        ),
+                        shape = CircleShape,
+                    ),
+            )
             val tint = if (mode == ButtonMode.CONNECTED) DEEP_TEXT else animatedAccent
             val glyph: ImageVector = when (mode) {
                 ButtonMode.BUSY -> Icons.Rounded.Autorenew
@@ -168,6 +184,7 @@ private fun CoreHalo(accent: Color, pulsing: Boolean) {
 
 private fun DrawScope.drawHalo(accent: Color, scale: Float) {
     val radius = size.minDimension / 2f * scale
+    // Primary glow
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(accent.copy(alpha = 0.40f), Color.Transparent),
@@ -175,6 +192,15 @@ private fun DrawScope.drawHalo(accent: Color, scale: Float) {
             radius = radius,
         ),
         radius = radius,
+    )
+    // Secondary inner glow for glass depth
+    drawCircle(
+        brush = Brush.radialGradient(
+            colors = listOf(Color.White.copy(alpha = 0.06f), Color.Transparent),
+            center = Offset(size.width / 2f, size.height / 2f),
+            radius = radius * 0.55f,
+        ),
+        radius = radius * 0.55f,
     )
 }
 

@@ -179,6 +179,10 @@ data class ConnectionProfile(
     val coreLogLevel: CoreLogLevel = CoreLogLevel.WARN,
     /** Apps that get NO internet at all while the VPN is on (UID-filtering bridge). */
     val blockedApps: List<String> = emptyList(),
+    /** Block ads via Cloudflare Family DNS (1.1.1.3). */
+    val dnsAdBlock: Boolean = false,
+    /** Block malware via Cloudflare DNS (1.1.1.2). */
+    val dnsMalwareBlock: Boolean = false,
 
 
     /**
@@ -211,7 +215,7 @@ data class ConnectionProfile(
      * handshakes but carries no traffic, which is impossible to diagnose from
      * the UI, so this stays on by default.
      */
-    val autoReprovision: Boolean = true,
+    val autoReprovision: Boolean = false,
 
 ) {
     /** True when a Zero Trust organization is configured and usable. */
@@ -274,7 +278,13 @@ data class ConnectionProfile(
 
         // In-tunnel resolvers. Sanitised so a malformed entry can never inject
         // a second CLI token (the engine itself also re-validates each entry).
-        sanitizedDns().takeIf { it.isNotEmpty() }?.let {
+        // DNS ad blocking / malware protection overrides user DNS when enabled.
+        val effectiveDns = buildList {
+            if (dnsAdBlock) add("1.1.1.3")
+            else if (dnsMalwareBlock) add("1.1.1.2")
+            addAll(sanitizedDns())
+        }.distinct().take(MAX_DNS_SERVERS)
+        effectiveDns.takeIf { it.isNotEmpty() }?.let {
             args += "--dns"
             args += it.joinToString(",")
         }
@@ -396,15 +406,31 @@ data class ConnectionProfile(
 
         // Encrypted DNS (DoH / DoT). Plain UDP stays as the automatic fallback
         // inside the engine, so a blocked endpoint never breaks resolution.
+        // DNS ad blocking / malware protection overrides the DoH endpoint when
+        // enabled and no custom endpoint is set.
         when (dnsMode) {
             DnsMode.PLAIN -> {}
             DnsMode.DOH -> {
                 put("SOILDTUNNEL_DNS_MODE", "doh")
-                sanitizedDohUrl()?.let { put("SOILDTUNNEL_DOH_URL", it) }
+                val customUrl = sanitizedDohUrl()
+                if (customUrl != null) {
+                    put("SOILDTUNNEL_DOH_URL", customUrl)
+                } else if (dnsAdBlock) {
+                    put("SOILDTUNNEL_DOH_URL", "https://family.cloudflare-dns.com/dns-query")
+                } else if (dnsMalwareBlock) {
+                    put("SOILDTUNNEL_DOH_URL", "https://security.cloudflare-dns.com/dns-query")
+                }
             }
             DnsMode.DOT -> {
                 put("SOILDTUNNEL_DNS_MODE", "dot")
-                sanitizedDotHost()?.let { put("SOILDTUNNEL_DOT_HOST", it) }
+                val customHost = sanitizedDotHost()
+                if (customHost != null) {
+                    put("SOILDTUNNEL_DOT_HOST", customHost)
+                } else if (dnsAdBlock) {
+                    put("SOILDTUNNEL_DOT_HOST", "family.cloudflare-dns.com")
+                } else if (dnsMalwareBlock) {
+                    put("SOILDTUNNEL_DOT_HOST", "security.cloudflare-dns.com")
+                }
             }
         }
     }

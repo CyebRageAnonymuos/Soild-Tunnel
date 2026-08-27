@@ -216,6 +216,10 @@
     <string name="enc_dns_endpoint_label">نقطه اتصال دلخواه (اختیاری)</string>
     <string name="enc_dns_endpoint_hint">https://cloudflare-dns.com/dns-query</string>
     <string name="enc_dns_endpoint_help">DoH: آدرس کامل https:// . DoT: هاست یا host:port (پورت پیش‌فرض 853). خالی = پیش‌فرض Cloudflare.</string>
+    <string name="dns_ad_block_title">مسدودسازی تبلیغات</string>
+    <string name="dns_ad_block_desc">فیلتر تبلیغات و ردیاب‌ها از طریق DNS خانواده Cloudflare. روی همه برنامه‌ها داخل تونل کار می‌کند.</string>
+    <string name="dns_malware_block_title">محافظت در برابر بدافزار</string>
+    <string name="dns_malware_block_desc">مسدود کردن دامنه‌های فishing و بدافزار شناخته‌شده از طریق DNS امنیتی Cloudflare.</string>
     <!-- Feature merge: home-screen widget, onboarding, ping, crash report -->
     <string name="widget_desc">با یک لمس SoildTunnel را وصل یا قطع کن</string>
     <string name="widget_toggle_desc">تغییر وضعیت اتصال</string>

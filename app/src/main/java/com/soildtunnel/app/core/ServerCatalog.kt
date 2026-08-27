@@ -10,6 +10,8 @@ data class ServerNode(
     val name: String,
     /** Short console-style code, e.g. "DE-01". */
     val code: String,
+    /** ISO 3166-1 alpha-2 country code for the flag emoji. */
+    val countryCode: String,
     /** What gets written into ConnectionProfile.manualRange on selection. */
     val cidrs: List<String>,
     /** Representative IP for the live TCP latency measurement. */
@@ -32,22 +34,23 @@ object ServerCatalog {
         id = AUTO_ID,
         name = "Auto",
         code = "AUTO",
+        countryCode = "",
         cidrs = emptyList(),
         probeHost = "1.1.1.1",
     )
 
     val nodes: List<ServerNode> = listOf(
-        ServerNode("de-01", "Germany", "DE-01", listOf("162.159.192.0/24"), "162.159.192.1"),
-        ServerNode("nl-01", "Netherlands", "NL-01", listOf("162.159.193.0/24"), "162.159.193.1"),
-        ServerNode("fr-01", "France", "FR-01", listOf("162.159.195.0/24"), "162.159.195.1"),
-        ServerNode("uk-01", "United Kingdom", "GB-01", listOf("162.159.196.0/24"), "162.159.196.1"),
-        ServerNode("tr-01", "Turkey", "TR-01", listOf("162.159.204.0/24"), "162.159.204.1"),
-        ServerNode("at-01", "Austria", "AT-01", listOf("172.65.251.0/24"), "172.65.251.1"),
-        ServerNode("ch-01", "Switzerland", "CH-01", listOf("188.114.96.0/24"), "188.114.96.1"),
-        ServerNode("it-01", "Italy", "IT-01", listOf("188.114.97.0/24"), "188.114.97.1"),
-        ServerNode("se-01", "Sweden", "SE-01", listOf("188.114.98.0/24"), "188.114.98.1"),
-        ServerNode("fi-01", "Finland", "FI-01", listOf("188.114.99.0/24"), "188.114.99.1"),
-        ServerNode("us-01", "United States", "US-01", listOf("8.6.112.0/24"), "8.6.112.1"),
+        ServerNode("de-01", "Germany", "DE-01", "DE", listOf("162.159.192.0/24"), "162.159.192.1"),
+        ServerNode("nl-01", "Netherlands", "NL-01", "NL", listOf("162.159.193.0/24"), "162.159.193.1"),
+        ServerNode("fr-01", "France", "FR-01", "FR", listOf("162.159.195.0/24"), "162.159.195.1"),
+        ServerNode("uk-01", "United Kingdom", "GB-01", "GB", listOf("162.159.196.0/24"), "162.159.196.1"),
+        ServerNode("tr-01", "Turkey", "TR-01", "TR", listOf("162.159.204.0/24"), "162.159.204.1"),
+        ServerNode("at-01", "Austria", "AT-01", "AT", listOf("172.65.251.0/24"), "172.65.251.1"),
+        ServerNode("ch-01", "Switzerland", "CH-01", "CH", listOf("188.114.96.0/24"), "188.114.96.1"),
+        ServerNode("it-01", "Italy", "IT-01", "IT", listOf("188.114.97.0/24"), "188.114.97.1"),
+        ServerNode("se-01", "Sweden", "SE-01", "SE", listOf("188.114.98.0/24"), "188.114.98.1"),
+        ServerNode("fi-01", "Finland", "FI-01", "FI", listOf("188.114.99.0/24"), "188.114.99.1"),
+        ServerNode("us-01", "United States", "US-01", "US", listOf("8.6.112.0/24"), "8.6.112.1"),
     )
 
     /** Everything the picker shows, in display order. */

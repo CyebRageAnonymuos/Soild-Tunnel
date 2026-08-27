@@ -413,18 +413,15 @@ private fun ServerSelectorPill(
     val selected = ServerCatalog.selectedIn(profile)
     val isAuto = selected?.id == ServerCatalog.AUTO_ID
 
-    // Prefer the country the last live probe ACTUALLY landed on (Cloudflare
-    // anycast reroutes all the time); fall back to the static catalog label.
+    // Always show the static catalog name. The actual exit country is shown
+    // in ConnectionCard after the tunnel is verified.
     val results by ServerPinger.state.collectAsState()
     val result = selected?.let { results[it.id] } ?: ServerPinger.Result()
     val name = when {
         selected == null -> stringResource(R.string.endpoint_range_custom_short)
-        result.countryName != null -> result.countryName
         else -> selected.name
     }
-    val flag =
-        if (selected != null && result.countryName != null) NetProbe.flagEmoji(result.countryCode)
-        else ""
+    val flag = if (selected != null) NetProbe.flagEmoji(selected.countryCode) else ""
 
     val alpha = if (enabled) 1f else 0.55f
     val shape = RoundedCornerShape(16.dp)
