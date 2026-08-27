@@ -155,15 +155,30 @@ private fun ServerRow(
     )
     val isAuto = node.id == ServerCatalog.AUTO_ID
 
-    // Always show the static catalog name and flag. The live Cloudflare colo
-    // can differ from the catalog label due to anycast routing, which confused
-    // users (e.g. "Italy" showing as "Azerbaijan"). The actual exit country
-    // is shown in ConnectionCard after the tunnel is established.
+    // Dynamic detection: show the country the live probe REALLY landed on.
+    // WARP ranges are anycast, so Cloudflare routes each IP to the nearest
+    // edge; the static catalog label is only a faint fallback when the probe
+    // hasn't answered yet. The real location the user connects to is what the
+    // trace reports via the colo code.
     val results by ServerPinger.state.collectAsState()
     val result = results[node.id] ?: ServerPinger.Result()
-    val flag = if (!isAuto) NetProbe.flagEmoji(node.countryCode) else ""
-    val title = node.name
-    val codeLabel = node.code
+    val hasLive = result.countryName != null
+    val flag = when {
+        hasLive -> NetProbe.flagEmoji(result.countryCode)
+        !isAuto -> NetProbe.flagEmoji(node.countryCode)
+        else -> ""
+    }
+    val liveTitle = result.countryName
+    val title = when {
+        isAuto && liveTitle == null -> node.name
+        liveTitle != null -> liveTitle
+        else -> node.name
+    }
+    // Measured colo (e.g. "VIE") is more truthful than the catalog code.
+    val codeLabel = when {
+        result.colo != null -> result.colo
+        else -> node.code
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

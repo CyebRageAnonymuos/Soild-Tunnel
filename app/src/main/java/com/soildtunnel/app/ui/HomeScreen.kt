@@ -413,15 +413,21 @@ private fun ServerSelectorPill(
     val selected = ServerCatalog.selectedIn(profile)
     val isAuto = selected?.id == ServerCatalog.AUTO_ID
 
-    // Always show the static catalog name. The actual exit country is shown
-    // in ConnectionCard after the tunnel is verified.
+    // Show the country the live probe REALLY landed on (WARP ranges are
+    // anycast). Fall back to the static catalog label while measuring.
     val results by ServerPinger.state.collectAsState()
     val result = selected?.let { results[it.id] } ?: ServerPinger.Result()
+    val liveName = selected?.let { result.countryName }
     val name = when {
         selected == null -> stringResource(R.string.endpoint_range_custom_short)
+        liveName != null -> liveName
         else -> selected.name
     }
-    val flag = if (selected != null) NetProbe.flagEmoji(selected.countryCode) else ""
+    val flag = when {
+        selected == null -> ""
+        result.countryCode != null -> NetProbe.flagEmoji(result.countryCode)
+        else -> NetProbe.flagEmoji(selected.countryCode)
+    }
 
     val alpha = if (enabled) 1f else 0.55f
     val shape = RoundedCornerShape(16.dp)

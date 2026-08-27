@@ -184,6 +184,6 @@ object ServerPinger {
     private const val MIN_VISIBLE_MS = 350L
     private const val TRACE_SNI = "speed.cloudflare.com"
     private const val MAX_TRACE_BYTES = 32_000
-    private const val STALE_MS = 24 * 60 * 60 * 1000L // 24 hours
+    private const val STALE_MS = 5 * 60 * 1000L // 5 minutes
     private val COLO_REGEX = Regex("(?:^|[\r\n])colo=([A-Za-z0-9]+)")
 }
