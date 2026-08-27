@@ -111,7 +111,13 @@ fun ServerPickerSheet(
                 text = stringResource(R.string.server_pick_subtitle),
                 fontSize = 12.sp,
                 color = CardTextMuted,
-                modifier = Modifier.padding(top = 4.dp, bottom = 14.dp),
+                modifier = Modifier.padding(top = 4.dp, bottom = 6.dp),
+            )
+            Text(
+                text = stringResource(R.string.server_anycast_note),
+                fontSize = 11.sp,
+                color = CardTextDim,
+                modifier = Modifier.padding(bottom = 14.dp),
             )
 
             LazyColumn(

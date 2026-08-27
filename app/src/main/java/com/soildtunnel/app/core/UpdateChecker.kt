@@ -34,6 +34,7 @@ object UpdateChecker {
     private const val KEY_LAST_CHECK = "last_check"
     private const val KEY_LAST_FAIL = "last_fail"
     private const val KEY_LAST_RESULT = "last_result"
+    private const val KEY_LAST_VERSION = "last_version"
 
     private const val CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L // success
     private const val FAIL_RETRY_MS = 30 * 60 * 1000L          // after a failed check
@@ -46,7 +47,16 @@ object UpdateChecker {
     fun init(context: Context) {
         val p = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs = p
-        cached = p.getString(KEY_LAST_RESULT, null)?.let(::decode)
+        // If the app was updated since the last check, the cached "has update"
+        // banner is stale — clear it so the banner disappears immediately.
+        val savedVersion = p.getString(KEY_LAST_VERSION, null)
+        if (savedVersion != BuildConfig.VERSION_NAME) {
+            p.edit().clear().apply()
+            cached = null
+        } else {
+            cached = p.getString(KEY_LAST_RESULT, null)?.let(::decode)
+        }
+        p.edit().putString(KEY_LAST_VERSION, BuildConfig.VERSION_NAME).apply()
     }
 
     fun getCachedResult(): Result = cached ?: Result()

@@ -252,6 +252,7 @@ private fun ServerIpPill(connected: Boolean, ipInfo: IpEndpoint?, ipLoading: Boo
         if (connected) R.string.ip_server_label else R.string.ip_your_label,
     )
     val flag = NetProbe.flagEmoji(ipInfo?.countryCode)
+    val country = if (connected && ipInfo?.viaTunnel == true) NetProbe.countryName(ipInfo.countryCode) else ""
     val value = when {
         ipLoading && ipInfo == null -> stringResource(R.string.ip_checking)
         ipInfo != null -> ipInfo.ip
@@ -269,6 +270,9 @@ private fun ServerIpPill(connected: Boolean, ipInfo: IpEndpoint?, ipLoading: Boo
         Text(text = label, fontSize = 12.sp, color = CardTextMuted)
         if (ipInfo != null) {
             Text(text = flag, fontSize = 15.sp)
+        }
+        if (country.isNotEmpty()) {
+            Text(text = country, fontSize = 11.sp, color = CardTextMuted)
         }
         AnimatedContent(
             targetState = value,

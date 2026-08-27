@@ -295,6 +295,7 @@
     <string name="server_title">سرور</string>
     <string name="server_pick_title">انتخاب سرور</string>
     <string name="server_pick_subtitle">تأخیر زنده از همین دستگاه اندازه‌گیری شده. برای پین کردن روی نود بزن.</string>
+    <string name="server_anycast_note">Cloudflare ترافیک را به نزدیک‌ترین لبه مسیریابی می‌کند — کشور خروجی ممکن است با برچسب متفاوت باشد. کشور واقعی خروجی بعد از اتصال نمایش داده می‌شود.</string>
     <string name="server_auto_desc">همه رنج‌های لبه داخلی را اسکن و سریع‌ترین گیت‌وی زنده را نگه می‌دارد</string>
     <string name="server_selected">انتخاب شد</string>
     <string name="server_ping_refresh">اندازه‌گیری دوباره تأخیر</string>

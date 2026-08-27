@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="app/src/main/res/drawable/ic_logo.png" width="100" />
+<img src="app/src/main/res/drawable-nodpi/ic_logo.png" width="100" />
 
 # SoildTunnel
 

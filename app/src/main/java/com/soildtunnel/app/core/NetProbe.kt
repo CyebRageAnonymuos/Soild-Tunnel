@@ -448,4 +448,68 @@ object NetProbe {
         val second = base + (cc[1].code - 'A'.code)
         return String(Character.toChars(first)) + String(Character.toChars(second))
     }
+
+    /** Turns a 2-letter ISO country code into a human-readable name. */
+    fun countryName(countryCode: String?): String {
+        if (countryCode == null || countryCode.length != 2) return ""
+        val names = mapOf(
+            "AD" to "Andorra", "AE" to "United Arab Emirates", "AF" to "Afghanistan",
+            "AG" to "Antigua and Barbuda", "AL" to "Albania", "AM" to "Armenia",
+            "AO" to "Angola", "AR" to "Argentina", "AT" to "Austria",
+            "AU" to "Australia", "AZ" to "Azerbaijan", "BA" to "Bosnia and Herzegovina",
+            "BB" to "Barbados", "BD" to "Bangladesh", "BE" to "Belgium",
+            "BF" to "Burkina Faso", "BG" to "Bulgaria", "BH" to "Bahrain",
+            "BI" to "Burundi", "BJ" to "Benin", "BN" to "Brunei",
+            "BO" to "Bolivia", "BR" to "Brazil", "BS" to "Bahamas",
+            "BT" to "Bhutan", "BW" to "Botswana", "BY" to "Belarus",
+            "BZ" to "Belize", "CA" to "Canada", "CD" to "DR Congo",
+            "CF" to "Central African Republic", "CG" to "Congo",
+            "CH" to "Switzerland", "CI" to "Ivory Coast", "CL" to "Chile",
+            "CM" to "Cameroon", "CN" to "China", "CO" to "Colombia",
+            "CR" to "Costa Rica", "CU" to "Cuba", "CY" to "Cyprus",
+            "CZ" to "Czech Republic", "DE" to "Germany", "DJ" to "Djibouti",
+            "DK" to "Denmark", "DO" to "Dominican Republic", "DZ" to "Algeria",
+            "EC" to "Ecuador", "EE" to "Estonia", "EG" to "Egypt",
+            "ER" to "Eritrea", "ES" to "Spain", "ET" to "Ethiopia",
+            "FI" to "Finland", "FJ" to "Fiji", "FR" to "France",
+            "GA" to "Gabon", "GB" to "United Kingdom", "GE" to "Georgia",
+            "GH" to "Ghana", "GM" to "Gambia", "GN" to "Guinea",
+            "GQ" to "Equatorial Guinea", "GR" to "Greece", "GT" to "Guatemala",
+            "GY" to "Guyana", "HN" to "Honduras", "HR" to "Croatia",
+            "HT" to "Haiti", "HU" to "Hungary", "ID" to "Indonesia",
+            "IE" to "Ireland", "IL" to "Israel", "IN" to "India",
+            "IQ" to "Iraq", "IR" to "Iran", "IS" to "Iceland",
+            "IT" to "Italy", "JM" to "Jamaica", "JO" to "Jordan",
+            "JP" to "Japan", "KE" to "Kenya", "KG" to "Kyrgyzstan",
+            "KH" to "Cambodia", "KR" to "South Korea", "KW" to "Kuwait",
+            "KZ" to "Kazakhstan", "LA" to "Laos", "LB" to "Lebanon",
+            "LK" to "Sri Lanka", "LR" to "Liberia", "LT" to "Lithuania",
+            "LU" to "Luxembourg", "LV" to "Latvia", "LY" to "Libya",
+            "MA" to "Morocco", "MD" to "Moldova", "ME" to "Montenegro",
+            "MG" to "Madagascar", "MK" to "North Macedonia", "ML" to "Mali",
+            "MM" to "Myanmar", "MN" to "Mongolia", "MO" to "Macao",
+            "MT" to "Malta", "MU" to "Mauritius", "MV" to "Maldives",
+            "MW" to "Malawi", "MX" to "Mexico", "MY" to "Malaysia",
+            "MZ" to "Mozambique", "NA" to "Namibia", "NE" to "Niger",
+            "NG" to "Nigeria", "NI" to "Nicaragua", "NL" to "Netherlands",
+            "NO" to "Norway", "NP" to "Nepal", "NZ" to "New Zealand",
+            "OM" to "Oman", "PA" to "Panama", "PE" to "Peru",
+            "PG" to "Papua New Guinea", "PH" to "Philippines", "PK" to "Pakistan",
+            "PL" to "Poland", "PT" to "Portugal", "PY" to "Paraguay",
+            "QA" to "Qatar", "RO" to "Romania", "RS" to "Serbia",
+            "RU" to "Russia", "RW" to "Rwanda", "SA" to "Saudi Arabia",
+            "SD" to "Sudan", "SE" to "Sweden", "SG" to "Singapore",
+            "SI" to "Slovakia", "SK" to "Slovakia", "SL" to "Sierra Leone",
+            "SN" to "Senegal", "SO" to "Somalia", "SR" to "Suriname",
+            "SV" to "El Salvador", "SY" to "Syria", "TG" to "Togo",
+            "TH" to "Thailand", "TJ" to "Tajikistan", "TM" to "Turkmenistan",
+            "TN" to "Tunisia", "TR" to "Turkey", "TT" to "Trinidad and Tobago",
+            "TW" to "Taiwan", "TZ" to "Tanzania", "UA" to "Ukraine",
+            "UG" to "Uganda", "US" to "United States", "UY" to "Uruguay",
+            "UZ" to "Uzbekistan", "VE" to "Venezuela", "VN" to "Vietnam",
+            "YE" to "Yemen", "ZA" to "South Africa", "ZM" to "Zambia",
+            "ZW" to "Zimbabwe",
+        )
+        return names[countryCode.uppercase()] ?: ""
+    }
 }

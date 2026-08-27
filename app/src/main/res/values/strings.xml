@@ -295,6 +295,7 @@
     <string name="server_title">Server</string>
     <string name="server_pick_title">Select server</string>
     <string name="server_pick_subtitle">Live latency measured from this device. Tap a node to pin it.</string>
+    <string name="server_anycast_note">Cloudflare routes traffic to the nearest edge — exit country may differ from the label. The actual exit is shown after connecting.</string>
     <string name="server_auto_desc">Scan every built-in edge range, keep the fastest live gateway</string>
     <string name="server_selected">Selected</string>
     <string name="server_ping_refresh">Re-measure latency</string>
