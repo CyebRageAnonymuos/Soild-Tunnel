@@ -10,7 +10,7 @@ A high-performance, censorship-resistant VPN tunnel for Android that defeats
 deep packet inspection, ad trackers, and malware — wrapped in a pure-black
 liquid-glass interface.
 
-[![Build & Release](https://github.com/CyebRageAnonymuos/Soild-Tunnel/actions/workflows/build.yml/badge.svg)](../../actions)
+[![Build & Release](https://github.com/CyberRageAnonymous/Soild-Tunnel/actions/workflows/build.yml/badge.svg)](../../actions)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg)]()
 [![Min SDK](https://img.shields.io/badge/API-26%2B-green.svg)]()
@@ -179,7 +179,7 @@ Grab the latest signed APK from the
 
 ```bash
 # Clone
-git clone https://github.com/CyebRageAnonymuos/Soild-Tunnel.git
+git clone https://github.com/CyberRageAnonymous/Soild-Tunnel.git
 cd Soild-Tunnel
 
 # Fetch native sources (hev-socks5-tunnel, etc.)

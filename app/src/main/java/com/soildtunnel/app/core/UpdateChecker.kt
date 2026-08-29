@@ -39,7 +39,7 @@ object UpdateChecker {
     private const val CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L // success
     private const val FAIL_RETRY_MS = 30 * 60 * 1000L          // after a failed check
 
-    private const val FALLBACK_RELEASES_URL = "https://github.com/CyebRageAnonymuos/Soild-Tunnel/releases/latest"
+    private const val FALLBACK_RELEASES_URL = "https://github.com/CyberRageAnonymous/Soild-Tunnel/releases/latest"
 
     private var prefs: SharedPreferences? = null
     private var cached: Result? = null

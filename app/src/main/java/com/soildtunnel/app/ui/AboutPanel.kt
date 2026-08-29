@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.soildtunnel.app.BuildConfig
 import com.soildtunnel.app.R
 
-private const val URL_PROJECT_GITHUB = "https://github.com/CyebRageAnonymuos/Soild-Tunnel"
+private const val URL_PROJECT_GITHUB = "https://github.com/CyberRageAnonymous/Soild-Tunnel"
 
 
 
@@ -121,7 +121,7 @@ fun AboutPanel(modifier: Modifier = Modifier) {
                         title = stringResource(R.string.about_license_title),
                         note = stringResource(R.string.about_license_note),
                     )
-                    LinkRow(R.drawable.ic_github, "CyebRageAnonymuos/Soild-Tunnel", URL_PROJECT_GITHUB)
+                    LinkRow(R.drawable.ic_github, "CyberRageAnonymous/Soild-Tunnel", URL_PROJECT_GITHUB)
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = "Released under the GNU AGPL v3. Built on open-source components.",
